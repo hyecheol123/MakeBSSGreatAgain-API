@@ -36,5 +36,8 @@ Data Diagram for the database
 
 <details>
   <summary>Click to see SQL Queries to create tables.</summary>
-  
+
 </details>
+
+[Express](https://expressjs.com/) is a web framework for node.js.
+This project used it to develop and maintain APIs more conveniently.
