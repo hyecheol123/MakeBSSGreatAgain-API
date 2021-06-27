@@ -29,7 +29,8 @@ To configure the typescript development environment easily, [gts](https://github
 Based on the `gts` style rules, I modified some to enforce rules more strictly.
 To see the modification, please check [`.eslintrc.json` file](https://github.com/hyecheol123/MakeBSSGreatAgain-API/blob/main/.eslintrc.json).
 
-For the database, this project is relying on [MariaDB](https://mariadb.org/), which almost identical with the MySQL.
+For the database, this project is relying on [MariaDB](https://mariadb.org/), which almost identical with the MySQL.  
+Session information is stored in [Redis](https://redis.io/) server.
 
 Data Diagram for the database
 ![ERD.svg](img/ERD.svg)
