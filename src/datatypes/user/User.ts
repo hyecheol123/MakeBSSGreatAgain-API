@@ -17,7 +17,7 @@ export default class User implements LoginCredentials {
   memberSince: Date;
   admissionYear: number;
   nameKorean: string;
-  nameEnglish?: string;
+  nameEnglish?: string | null; // null for DB
   status: 'verified' | 'unverified' | 'suspended' | 'deleted';
   admin: boolean;
 
@@ -64,6 +64,9 @@ export default class User implements LoginCredentials {
     dbClient: mariadb.Pool,
     user: User
   ): Promise<mariadb.UpsertResult> {
+    if (user.nameEnglish === undefined) {
+      user.nameEnglish = null;
+    }
     try {
       return await dbClient.query(
         String.prototype.concat(

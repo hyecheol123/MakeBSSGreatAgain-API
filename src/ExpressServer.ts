@@ -82,6 +82,10 @@ export default class ExpressServer {
         res.status((err as HTTPError).statusCode).json({error: err.message});
       }
     );
+
+    this.app.use((req, res) => {
+      res.status(404).send({error: 'Not Found'});
+    });
   }
 
   /**

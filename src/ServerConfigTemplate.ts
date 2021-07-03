@@ -48,6 +48,7 @@ export default abstract class ServerConfigTemplate {
     additionalSalt: BinaryLike,
     secretString: BinaryLike
   ): string {
+    /* istanbul ignore next */
     return `${id}_${additionalSalt}_${secretString}`;
   }
 }

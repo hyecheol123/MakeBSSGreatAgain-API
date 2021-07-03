@@ -46,39 +46,42 @@ userRouter.post('/', async (req, res, next) => {
     );
 
     // User
-    if (newUserForm.admissionYear + 2002 > memberSince.getFullYear()) {
+    if (
+      newUserForm.admissionYear + 2002 > memberSince.getFullYear() ||
+      newUserForm.admissionYear < 1
+    ) {
       throw new BadRequestError();
     }
-    const user: User = {
-      username: newUserForm.username,
-      password: hashedPW,
-      memberSince: memberSince,
-      admissionYear: newUserForm.admissionYear,
-      nameKorean: newUserForm.nameKorean,
-      nameEnglish: newUserForm.nameEnglish,
-      status: 'unverified',
-      admin: false,
-    };
-    const userDBOps = User.create(dbClient, user);
+    const user = new User(
+      newUserForm.username,
+      hashedPW,
+      memberSince,
+      newUserForm.admissionYear,
+      newUserForm.nameKorean,
+      'unverified',
+      false,
+      newUserForm.nameEnglish
+    );
+    await User.create(dbClient, user);
 
     // UserEmail
-    const userEmail: UserEmail = {
-      username: user.username,
-      email: newUserForm.email,
-      primaryAddr: true,
-      verified: false,
-    };
+    const userEmail = new UserEmail(
+      user.username,
+      newUserForm.email,
+      true,
+      false
+    );
     const userEmailDBOps = UserEmail.create(dbClient, userEmail);
 
     // UserPhoneNumber
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let userPhoneNumberDBOps: Promise<any> = Promise.resolve();
     if (newUserForm.phoneNumber !== undefined) {
-      const userPhoneNumber: UserPhoneNumber = {
-        username: user.username,
-        countryCode: newUserForm.phoneNumber.countryCode,
-        phoneNumber: newUserForm.phoneNumber.phoneNumber,
-      };
+      const userPhoneNumber = new UserPhoneNumber(
+        user.username,
+        newUserForm.phoneNumber.countryCode,
+        newUserForm.phoneNumber.phoneNumber
+      );
       userPhoneNumberDBOps = UserPhoneNumber.create(dbClient, userPhoneNumber);
     }
 
@@ -97,13 +100,10 @@ userRouter.post('/', async (req, res, next) => {
     // TODO: Send Email Verify Notice (AWS Lambda + SES)
 
     // Resolve Promises (DB Ops)
-    await Promise.all([
-      userDBOps,
-      userPhoneNumberDBOps,
-      userEmailVerifyTicketDBOps,
-    ]);
+    await Promise.all([userPhoneNumberDBOps, userEmailVerifyTicketDBOps]);
 
     // Response
+    res.status(200).json({username: user.username});
   } catch (e) {
     next(e);
   }

@@ -144,7 +144,7 @@ export default class TestEnv {
           'id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,',
           'username VARCHAR(12) NOT NULL,',
           'FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE,',
-          'email VARCHAR(255) NOT NULL',
+          'email VARCHAR(255) NOT NULL,',
           'primary_addr BOOLEAN NOT NULL,',
           'verified BOOLEAN NOT NULL',
           ') CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=MEMORY;'
@@ -184,7 +184,7 @@ export default class TestEnv {
       userTimestamp,
       13,
       '홍길동',
-      undefined,
+      null,
       'unverified',
       false,
     ]);
@@ -220,7 +220,7 @@ export default class TestEnv {
       userTimestamp,
       8,
       '나불법',
-      undefined,
+      null,
       'suspended',
       false,
     ]);
@@ -232,7 +232,7 @@ export default class TestEnv {
       userTimestamp,
       12,
       '김영희',
-      undefined,
+      null,
       'deleted',
       false,
     ]);

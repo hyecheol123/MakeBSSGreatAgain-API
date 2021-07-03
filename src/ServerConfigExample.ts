@@ -19,6 +19,7 @@ export default class ServerConfig extends ServerConfigTemplate {
   /**
    * Constructor for ServerConfig
    */
+  /* istanbul ignore next */
   constructor() {
     const config: ConfigObj = {
       db: {
