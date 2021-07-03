@@ -9,7 +9,7 @@ import * as mariadb from 'mariadb';
 import * as redis from 'redis';
 import * as cookieParser from 'cookie-parser';
 import ServerConfig from './ServerConfig';
-import HTTPError from './exceptions/HTPError';
+import HTTPError from './exceptions/HTTPError';
 
 /**
  * Class contains Express Application and other relevant instances/functions
@@ -40,8 +40,8 @@ export default class ExpressServer {
     // Link password hash function to the express application
     this.app.locals.hash = config.hash;
     // JWT Keys
-    this.app.set('jwtAccessKey', config.jwt.secretKey);
-    this.app.set('jwtRefreshKey', config.jwt.refreshKey);
+    process.env.jwtAccessKey = config.jwt.secretKey;
+    process.env.jwtRefreshKey = config.jwt.refreshKey;
 
     // TODO: Token Verify - functions directory
 
@@ -88,10 +88,11 @@ export default class ExpressServer {
 
   /**
    * CLose Server
-   * - Close connection with Database server gracefully
+   * - Close connection with Database/Redis server gracefully
    * - Flush Log
    */
   async closeServer(): Promise<void> {
-    await Promise.all([this.app.locals.dbClient.end()]);
+    await this.app.locals.dbClient.end();
+    this.app.locals.redis.end();
   }
 }
