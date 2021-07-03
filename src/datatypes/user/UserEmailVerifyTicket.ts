@@ -32,7 +32,7 @@ export default class UserEmailVerifyTicket {
     // Make BASE64 to BASE64URL
     id = id.replace('+', '-').replace('/', '_');
 
-    this.id = id;
+    this.id = id.substr(0, 44);
     this.emailId = emailId;
     this.expires = expires;
   }

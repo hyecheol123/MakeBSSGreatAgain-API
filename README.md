@@ -38,6 +38,56 @@ Data Diagram for the database
 <details>
   <summary>Click to see SQL Queries to create tables.</summary>
 
+
+  ### User
+  
+  SQL Query to create `user` table
+  ``` SQL
+  CREATE TABLE user (
+    username VARCHAR(12) NOT NULL PRIMARY KEY,
+    password CHAR(88) NOT NULL,
+    membersince TIMESTAMP NOT NULL,
+    admission_year TINYINT(2) NOT NULL,
+    name_korean VARCHAR(255) NOT NULL,
+    name_english VARCHAR(255) NULL DEFAULT NULL,
+    status VARCHAR(10) NOT NULL,
+    admin BOOLEAN NOT NULL
+  ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  ```
+  
+  SQL Query to create `user_email` table
+  ``` SQL
+  CREATE TABLE user_email (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(12) NOT NULL,
+    FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    primary_addr BOOLEAN NOT NULL,
+    verified BOOLEAN NOT NULL
+  ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  ```
+
+  SQL Query to create `user_email_verify_ticket` table
+  ``` SQL
+  CREATE TABLE user_email_verify_ticket (
+    id VARCHAR(44) NOT NULL PRIMARY KEY,
+    email_id INT(11) NOT NULL,
+    FOREIGN KEY (email_id) REFERENCES user_email(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    expires TIMESTAMP NOT NULL
+  ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  ```
+
+  SQL Query to create `user_phone_number` table
+  ``` SQL
+  CREATE TABLE user_phone_number (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(12) NOT NULL,
+    FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE,
+    country_code TINYINT(3) NOT NULL,
+    phone_number BIGINT(15) NOT NULL
+  ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  ```
+
 </details>
 
 [Express](https://expressjs.com/) is a web framework for node.js.
