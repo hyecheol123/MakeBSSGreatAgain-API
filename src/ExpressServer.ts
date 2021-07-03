@@ -43,8 +43,6 @@ export default class ExpressServer {
     process.env.jwtAccessKey = config.jwt.secretKey;
     process.env.jwtRefreshKey = config.jwt.refreshKey;
 
-    // TODO: Token Verify - functions directory
-
     // Setup Parsers
     this.app.use(express.json());
     this.app.use(cookieParser());
