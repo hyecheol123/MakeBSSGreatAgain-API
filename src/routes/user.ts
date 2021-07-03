@@ -94,7 +94,7 @@ userRouter.post('/', async (req, res, next) => {
       dbClient,
       userEmailVerifyTicket
     );
-    // TODO: Send Email Verify Notice
+    // TODO: Send Email Verify Notice (AWS Lambda + SES)
 
     // Resolve Promises (DB Ops)
     await Promise.all([
