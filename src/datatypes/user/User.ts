@@ -5,7 +5,7 @@
  */
 
 import * as mariadb from 'mariadb';
-import {LoginCredentials} from '../authentication/LoginCredentials';
+import LoginCredentials from '../authentication/LoginCredentials';
 import HTTPError from '../../exceptions/HTTPError';
 
 /**
@@ -58,10 +58,14 @@ export default class User implements LoginCredentials {
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param user User Information
+   * @return {Promise<mariadb.UpsertResult>} db operation result
    */
-  static async create(dbClient: mariadb.Pool, user: User): Promise<void> {
+  static async create(
+    dbClient: mariadb.Pool,
+    user: User
+  ): Promise<mariadb.UpsertResult> {
     try {
-      await dbClient.query(
+      return await dbClient.query(
         String.prototype.concat(
           'INSERT INTO user ',
           '(username, password, membersince, admission_year, name_korean, name_english, status, admin) ',

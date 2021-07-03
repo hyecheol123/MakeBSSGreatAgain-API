@@ -40,9 +40,13 @@ export default class UserEmail {
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param email UserEmail Information
+   * @return {Promise<mariadb.UpsertResult>} db operation result
    */
-  static async create(dbClient: mariadb.Pool, email: UserEmail): Promise<void> {
-    await dbClient.query(
+  static async create(
+    dbClient: mariadb.Pool,
+    email: UserEmail
+  ): Promise<mariadb.UpsertResult> {
+    return await dbClient.query(
       String.prototype.concat(
         'INSERT INTO user_email ',
         '(username, email, primary_addr, verified) VALUES (?, ?, ?, ?)'

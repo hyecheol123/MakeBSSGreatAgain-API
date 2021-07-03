@@ -42,12 +42,13 @@ export default class UserEmailVerifyTicket {
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param ticket UserEmailVerifyTicket information
+   * @return {Promise<mariadb.UpsertResult>} db operation result
    */
   static async create(
     dbClient: mariadb.Pool,
     ticket: UserEmailVerifyTicket
-  ): Promise<void> {
-    await dbClient.query(
+  ): Promise<mariadb.UpsertResult> {
+    return await dbClient.query(
       String.prototype.concat(
         'INSERT INTO user_email_verify_ticket ',
         '(id, email_id, expires) VALUES (?, ?, ?)'

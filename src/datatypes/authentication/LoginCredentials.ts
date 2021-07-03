@@ -7,7 +7,7 @@
 /**
  * Interface for LoginCredentials
  */
-export interface LoginCredentials {
+export default interface LoginCredentials {
   username: string;
   password: string;
 }

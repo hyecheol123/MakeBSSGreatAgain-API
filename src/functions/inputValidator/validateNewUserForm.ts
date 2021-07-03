@@ -19,8 +19,8 @@ export const validateNewUserForm = addFormats(new Ajv()).compile({
     phoneNumber: {
       type: 'object',
       properties: {
-        countryCode: {type: 'string', pattern: '^[0-9]*$'},
-        phoneNumber: {type: 'string', pattern: '^[0-9]*$'},
+        countryCode: {type: 'number'},
+        phoneNumber: {type: 'number'},
       },
       required: ['countryCode', 'phoneNumber'],
       additionalProperties: false,

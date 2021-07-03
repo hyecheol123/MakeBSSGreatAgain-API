@@ -32,12 +32,13 @@ export default class UserPhoneNumber {
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param phoneNumber UserPhoneNumber Information
+   * @return {Promise<mariadb.UpsertResult>} db operation result
    */
   static async create(
     dbClient: mariadb.Pool,
     phoneNumber: UserPhoneNumber
-  ): Promise<void> {
-    await dbClient.query(
+  ): Promise<mariadb.UpsertResult> {
+    return await dbClient.query(
       String.prototype.concat(
         'INSERT INTO user_phone_number ',
         '(username, country_code, phone_number) VALUES (?, ?, ?)'
