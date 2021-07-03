@@ -43,9 +43,11 @@ export default abstract class ServerConfigTemplate {
    * @param secretString string to be hashed (password, etc)
    * @returns {string} Hashed Password
    */
-  abstract hash(
+  static hash(
     id: BinaryLike,
     additionalSalt: BinaryLike,
     secretString: BinaryLike
-  ): string;
+  ): string {
+    return `${id}_${additionalSalt}_${secretString}`;
+  }
 }

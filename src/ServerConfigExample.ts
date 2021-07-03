@@ -51,7 +51,7 @@ export default class ServerConfig extends ServerConfigTemplate {
    * @param secretString string to be hashed (password, etc)
    * @returns {string} Hashed Password
    */
-  hash(
+  static hash(
     id: crypto.BinaryLike,
     additionalSalt: crypto.BinaryLike,
     secretString: crypto.BinaryLike

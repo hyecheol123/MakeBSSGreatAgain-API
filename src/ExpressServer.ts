@@ -37,8 +37,6 @@ export default class ExpressServer {
     // Create Redis Client and link to the express application
     this.app.locals.redisClient = redis.createClient(config.redis);
 
-    // Link password hash function to the express application
-    this.app.locals.hash = config.hash;
     // JWT Keys
     process.env.jwtAccessKey = config.jwt.secretKey;
     process.env.jwtRefreshKey = config.jwt.refreshKey;
