@@ -16,12 +16,14 @@ import AuthToken from '../../datatypes/authentication/AuthToken';
  * @param username unique username indicates the owner of this token
  * @param status user status
  * @param admin whether user is admin or not
+ * @param jwtAccessKey jwt access key secret
  * @return {string} JWT access token
  */
 export default function accessTokenCreate(
   username: AuthToken['username'],
   status: AuthToken['status'],
-  admin: AuthToken['admin']
+  admin: AuthToken['admin'],
+  jwtAccessKey: string
 ): string {
   const tokenContent: AuthToken = {
     username: username,
@@ -33,7 +35,7 @@ export default function accessTokenCreate(
   }
 
   // Generate AccessToken
-  return jwt.sign(tokenContent, process.env['jwtAccessKey'] as string, {
+  return jwt.sign(tokenContent, jwtAccessKey, {
     algorithm: 'HS512',
     expiresIn: '15m',
   });

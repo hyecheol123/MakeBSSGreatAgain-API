@@ -39,8 +39,8 @@ export default class ExpressServer {
     this.app.locals.redisClient = redis.createClient(config.redis);
 
     // JWT Keys
-    process.env.jwtAccessKey = config.jwt.secretKey;
-    process.env.jwtRefreshKey = config.jwt.refreshKey;
+    this.app.set('jwtAccessKey', config.jwt.secretKey);
+    this.app.set('jwtRefreshKey', config.jwt.refreshKey);
 
     // Setup Parsers
     this.app.use(express.json());

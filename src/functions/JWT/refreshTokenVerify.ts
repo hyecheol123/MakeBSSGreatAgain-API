@@ -17,12 +17,14 @@ import refreshTokenCreate from './refreshTokenCreate';
  * Method to verify refreshToken
  *
  * @param req Express Request object
+ * @param jwtRefreshKey JWT Refresh Token secret
  * @param redisClient redis client
  * @return {RefreshTokenVerifyResult} verification result of refresh token
  *   (new token included if the refresh token is about to expire)
  */
 export default function refreshTokenVerify(
   req: Request,
+  jwtRefreshKey: string,
   redisClient: redis.RedisClient
 ): RefreshTokenVerifyResult {
   if (!('X-REFRESH-TOKEN' in req.cookies)) {
@@ -31,11 +33,9 @@ export default function refreshTokenVerify(
   let tokenContents: JWTObject; // place to store contents of JWT
   // Verify and retrieve the token contents
   try {
-    tokenContents = jwt.verify(
-      req.cookies['X-REFRESH-TOKEN'],
-      process.env['jwtRefreshKey'] as string,
-      {algorithms: ['HS512']}
-    ) as JWTObject;
+    tokenContents = jwt.verify(req.cookies['X-REFRESH-TOKEN'], jwtRefreshKey, {
+      algorithms: ['HS512'],
+    }) as JWTObject;
   } catch (e) {
     throw new AuthenticationError();
   }
@@ -64,6 +64,7 @@ export default function refreshTokenVerify(
       tokenContents.username,
       tokenContents.status,
       tokenContents.admin,
+      jwtRefreshKey,
       redisClient
     );
   }
