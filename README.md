@@ -80,8 +80,7 @@ Data Diagram for the database
   SQL Query to create `user_phone_number` table
   ``` SQL
   CREATE TABLE user_phone_number (
-    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(12) NOT NULL,
+    username VARCHAR(12) NOT NULL PRIMARY KEY,
     FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE,
     country_code TINYINT(3) NOT NULL,
     phone_number BIGINT(15) NOT NULL
