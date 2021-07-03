@@ -5,7 +5,7 @@
  */
 
 import * as jwt from 'jsonwebtoken';
-import AuthToken from '../../datatypes/AuthToken';
+import AuthToken from '../../datatypes/authentication/AuthToken';
 
 /**
  * Method to generate new accessToken
@@ -16,7 +16,7 @@ import AuthToken from '../../datatypes/AuthToken';
  * @param username unique username indicates the owner of this token
  * @param status user status
  * @param admin whether user is admin or not
- * @return accessToken JWT access token
+ * @return {string} JWT access token
  */
 export default function accessTokenCreate(
   username: AuthToken['username'],

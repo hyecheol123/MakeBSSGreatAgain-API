@@ -7,9 +7,9 @@
 import {Request} from 'express';
 import * as jwt from 'jsonwebtoken';
 import * as redis from 'redis';
-import AuthToken from '../../datatypes/AuthToken';
-import JWTObject from '../../datatypes/JWTObject';
-import RefreshTokenVerifyResult from '../../datatypes/RefreshTokenVerifyResult';
+import AuthToken from '../../datatypes/authentication/AuthToken';
+import JWTObject from '../../datatypes/authentication/JWTObject';
+import RefreshTokenVerifyResult from '../../datatypes/authentication/RefreshTokenVerifyResult';
 import AuthenticationError from '../../exceptions/AuthenticationError';
 import refreshTokenCreate from './refreshTokenCreate';
 
@@ -18,7 +18,7 @@ import refreshTokenCreate from './refreshTokenCreate';
  *
  * @param req Express Request object
  * @param redisClient redis client
- * @return RefreshTokenVerifyResult verification result of refresh token
+ * @return {RefreshTokenVerifyResult} verification result of refresh token
  *   (new token included if the refresh token is about to expire)
  */
 export default function refreshTokenVerify(

@@ -6,15 +6,15 @@
 
 import {Request} from 'express';
 import * as jwt from 'jsonwebtoken';
-import AuthToken from '../../datatypes/AuthToken';
-import JWTObject from '../../datatypes/JWTObject';
+import AuthToken from '../../datatypes/authentication/AuthToken';
+import JWTObject from '../../datatypes/authentication/JWTObject';
 import AuthenticationError from '../../exceptions/AuthenticationError';
 
 /**
  * Method to verify accessToken
  *
  * @param req Express Request object
- * @return AuthToken authentication token
+ * @return {AuthToken} authentication token contents
  */
 export default function accessTokenVerify(req: Request): AuthToken {
   if (!('X-ACCESS-TOKEN' in req.cookies)) {

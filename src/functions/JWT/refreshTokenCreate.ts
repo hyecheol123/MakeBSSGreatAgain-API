@@ -6,7 +6,7 @@
 
 import * as jwt from 'jsonwebtoken';
 import * as redis from 'redis';
-import AuthToken from '../../datatypes/AuthToken';
+import AuthToken from '../../datatypes/authentication/AuthToken';
 
 /**
  * Method to generate new refreshToken
@@ -19,7 +19,7 @@ import AuthToken from '../../datatypes/AuthToken';
  * @param status user status
  * @param admin whether user is admin or not
  * @param redisClient redis client
- * @return refreshToken JWT access token
+ * @return {string} JWT refresh Token
  */
 export default function refreshTokenCreate(
   username: AuthToken['username'],
