@@ -31,9 +31,8 @@ export default class ServerConfig extends ServerConfigTemplate {
       redis: {
         host: 'localhost',
         port: 6379,
-        user: 'apptest',
-        password: '',
-        db: 'mbga',
+        user: '',
+        db: 15,
       },
       expressPort: 3000,
       jwtKeys: {secretKey: 'keySecret', refreshKey: 'keySecret'},

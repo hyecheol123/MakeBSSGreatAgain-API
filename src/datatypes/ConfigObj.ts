@@ -35,8 +35,8 @@ export interface RedisObj {
   host: string; // Host IP Address of the redis server
   port: number; // Port number to access redis server
   user: string;
-  password: string;
-  db: string; // Default database name
+  password?: string;
+  db: number; // Default database name
 }
 
 /**

@@ -14,7 +14,7 @@ const expressServer = new ExpressServer(configInstance); // express server setup
 // Startup the express server
 const {app} = expressServer;
 const server: Server = app.listen(configInstance.expressPort);
-console.log(`Start Auth API Server at port ${configInstance.expressPort}`);
+console.log(`Start API Server at port ${configInstance.expressPort}`);
 
 // Gracefully shutdown express server
 const shutdown = async (): Promise<void> => {
@@ -22,11 +22,11 @@ const shutdown = async (): Promise<void> => {
   await expressServer.closeServer();
 
   // Close API Server
-  server.close(() => {
-    console.log('Shutdown Auth API Server');
-    // eslint-disable-next-line no-process-exit
-    process.exit(0);
-  });
+  await server.close();
+
+  console.log('Shutdown API Server');
+  // eslint-disable-next-line no-process-exit
+  process.exit(0);
 };
 
 process.on('SIGTERM', shutdown);
