@@ -1,39 +1,37 @@
 /**
- * Configuration example for the Server.
- * Need to create ServerConfig.ts by copying this file.
- *
- * ServerConfig.ts file contains important credentials.
- * Should not be uploaded to version control system (git).
+ * Configuration for the Test Environment.
+ * Work identical as ServerConfig of src.
  *
  * @author Hyecheol (Jerry) Jang
  */
 
 import * as crypto from 'crypto';
-import {ConfigObj} from './datatypes/ConfigObj';
-import ServerConfigTemplate from './ServerConfigTemplate';
+import {ConfigObj} from '../src/datatypes/ConfigObj';
+import ServerConfigTemplate from '../src/ServerConfigTemplate';
 
 /**
  * Module contains the configuration
  */
-export default class ServerConfig extends ServerConfigTemplate {
+export default class TestConfig extends ServerConfigTemplate {
   /**
    * Constructor for ServerConfig
+   *
+   * @param identifier test name / used to identify test cases
    */
-  /* istanbul ignore next */
-  constructor() {
+  constructor(identifier: string) {
     const config: ConfigObj = {
       db: {
         url: 'localhost',
         port: 3306,
         username: 'apptest',
         password: '',
-        defaultDatabase: 'mbga',
+        defaultDatabase: `db_${identifier}`,
       },
       redis: {
         host: 'localhost',
         port: 6379,
         user: '',
-        db: 15,
+        db: 14,
       },
       expressPort: 3000,
       jwtKeys: {secretKey: 'keySecret', refreshKey: 'keySecret'},
@@ -43,9 +41,6 @@ export default class ServerConfig extends ServerConfigTemplate {
 
   /**
    * Function to create hashed password
-   *
-   * Detail of this function also should not be disclosed for security purpose.
-   * Should not be uploaded to version control system (git).
    *
    * @param id user's id (used to generate salt)
    * @param additionalSalt unique additional salt element for each user
@@ -57,7 +52,6 @@ export default class ServerConfig extends ServerConfigTemplate {
     additionalSalt: crypto.BinaryLike,
     secretString: crypto.BinaryLike
   ): string {
-    // TODO: Should generate your own hash function
     const salt: crypto.BinaryLike = id.toString() + additionalSalt.toString();
     return crypto
       .pbkdf2Sync(secretString, salt, 10, 64, 'sha512')

@@ -6,28 +6,30 @@
 
 import {Request} from 'express';
 import * as jwt from 'jsonwebtoken';
-import AuthToken from '../../datatypes/AuthToken';
-import JWTObject from '../../datatypes/JWTObject';
+import AuthToken from '../../datatypes/authentication/AuthToken';
+import JWTObject from '../../datatypes/authentication/JWTObject';
 import AuthenticationError from '../../exceptions/AuthenticationError';
 
 /**
  * Method to verify accessToken
  *
  * @param req Express Request object
- * @return AuthToken authentication token
+ * @param jwtAccessKey jwt access key secret
+ * @return {AuthToken} authentication token contents
  */
-export default function accessTokenVerify(req: Request): AuthToken {
+export default function accessTokenVerify(
+  req: Request,
+  jwtAccessKey: string
+): AuthToken {
   if (!('X-ACCESS-TOKEN' in req.cookies)) {
     throw new AuthenticationError();
   }
   let tokenContents: JWTObject; // place to store contents of JWT
   // Verify and retrieve the token contents
   try {
-    tokenContents = jwt.verify(
-      req.cookies['X-ACCESS-TOKEN'],
-      process.env['jwtAccessKey'] as string,
-      {algorithms: ['HS512']}
-    ) as JWTObject;
+    tokenContents = jwt.verify(req.cookies['X-ACCESS-TOKEN'], jwtAccessKey, {
+      algorithms: ['HS512'],
+    }) as JWTObject;
   } catch (e) {
     throw new AuthenticationError();
   }

@@ -10,6 +10,7 @@ import * as redis from 'redis';
 import * as cookieParser from 'cookie-parser';
 import ServerConfig from './ServerConfig';
 import HTTPError from './exceptions/HTTPError';
+import userRouter from './routes/user';
 
 /**
  * Class contains Express Application and other relevant instances/functions
@@ -37,11 +38,9 @@ export default class ExpressServer {
     // Create Redis Client and link to the express application
     this.app.locals.redisClient = redis.createClient(config.redis);
 
-    // Link password hash function to the express application
-    this.app.locals.hash = config.hash;
     // JWT Keys
-    process.env.jwtAccessKey = config.jwt.secretKey;
-    process.env.jwtRefreshKey = config.jwt.refreshKey;
+    this.app.set('jwtAccessKey', config.jwt.secretKey);
+    this.app.set('jwtRefreshKey', config.jwt.refreshKey);
 
     // Setup Parsers
     this.app.use(express.json());
@@ -63,7 +62,8 @@ export default class ExpressServer {
       }
     );
 
-    // TODO: Routers
+    // Routers
+    this.app.use('/user', userRouter);
 
     // Default Error Handler
     this.app.use(
@@ -82,6 +82,10 @@ export default class ExpressServer {
         res.status((err as HTTPError).statusCode).json({error: err.message});
       }
     );
+
+    this.app.use((req, res) => {
+      res.status(404).send({error: 'Not Found'});
+    });
   }
 
   /**
@@ -91,6 +95,6 @@ export default class ExpressServer {
    */
   async closeServer(): Promise<void> {
     await this.app.locals.dbClient.end();
-    this.app.locals.redisClient.end(true);
+    this.app.locals.redisClient.quit();
   }
 }

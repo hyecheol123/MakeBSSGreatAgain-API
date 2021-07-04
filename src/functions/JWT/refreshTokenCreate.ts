@@ -6,7 +6,7 @@
 
 import * as jwt from 'jsonwebtoken';
 import * as redis from 'redis';
-import AuthToken from '../../datatypes/AuthToken';
+import AuthToken from '../../datatypes/authentication/AuthToken';
 
 /**
  * Method to generate new refreshToken
@@ -18,13 +18,15 @@ import AuthToken from '../../datatypes/AuthToken';
  * @param username unique username indicates the owner of this token
  * @param status user status
  * @param admin whether user is admin or not
+ * @param jwtRefreshKey jwt Refresh Token Secret
  * @param redisClient redis client
- * @return refreshToken JWT access token
+ * @return {string} JWT refresh Token
  */
 export default function refreshTokenCreate(
   username: AuthToken['username'],
   status: AuthToken['status'],
   admin: AuthToken['admin'],
+  jwtRefreshKey: string,
   redisClient: redis.RedisClient
 ): string {
   const tokenContent: AuthToken = {
@@ -37,14 +39,10 @@ export default function refreshTokenCreate(
   }
 
   // Generate RefreshToken
-  const refreshToken = jwt.sign(
-    tokenContent,
-    process.env['jwtRefreshKey'] as string,
-    {
-      algorithm: 'HS512',
-      expiresIn: '120m',
-    }
-  );
+  const refreshToken = jwt.sign(tokenContent, jwtRefreshKey, {
+    algorithm: 'HS512',
+    expiresIn: '120m',
+  });
 
   // Redis
   redisClient.set(`${username}_${refreshToken}`, '', 'EX', 120 * 60);
