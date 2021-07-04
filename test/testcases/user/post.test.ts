@@ -9,6 +9,7 @@ import * as request from 'supertest';
 // eslint-disable-next-line node/no-unpublished-import
 import MockDate from 'mockdate';
 import TestEnv from '../../TestEnv';
+import TestConfig from '../../TestConfig';
 
 describe('POST /user - create new user', () => {
   let testEnv: TestEnv;
@@ -45,7 +46,48 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(200);
     expect(response.body.username).toBe('successtest');
 
-    // TODO DB Checks: user, user_email, user_email_ticket, user_phone_number(nothing)
+    // DB Checks
+    // user table
+    let queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].admission_year).toBe(10);
+    expect(queryResult[0].name_korean).toBe('홍길동');
+    expect(queryResult[0].name_english).toBe(null);
+    expect(queryResult[0].status).toBe('unverified');
+    expect(queryResult[0].admin).toBe(0); // False is 0
+    expect(queryResult[0].password).toBe(
+      TestConfig.hash(
+        'successtest',
+        new Date(queryResult[0].membersince).toISOString(),
+        'UserPassword12!'
+      )
+    );
+    // user_email table
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('gildong.hong@gmail.com');
+    expect(queryResult[0].primary_addr).toBe(1); // true
+    expect(queryResult[0].verified).toBe(0); // false
+    const emailId = queryResult[0].id;
+    // user_email_verify_ticket table
+    queryResult = await testEnv.dbClient.query(
+      `SELECT * FROM user_email_verify_ticket WHERE email_id=${emailId}`
+    );
+    expect(queryResult.length).toBe(1);
+    const expectedExpire = new Date();
+    expectedExpire.setDate(expectedExpire.getDate() + 2);
+    expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
+    expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
+    // user_phone_number table
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(0);
   });
 
   test('Success - with english name', async () => {
@@ -64,7 +106,48 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(200);
     expect(response.body.username).toBe('successtest');
 
-    // TODO DB Checks: user, user_email, user_email_ticket, user_phone_number(nothing)
+    // DB Checks
+    // user table
+    let queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].admission_year).toBe(10);
+    expect(queryResult[0].name_korean).toBe('홍길동');
+    expect(queryResult[0].name_english).toBe('Gildong Hong');
+    expect(queryResult[0].status).toBe('unverified');
+    expect(queryResult[0].admin).toBe(0); // False is 0
+    expect(queryResult[0].password).toBe(
+      TestConfig.hash(
+        'successtest',
+        new Date(queryResult[0].membersince).toISOString(),
+        'UserPassword12!'
+      )
+    );
+    // user_email table
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('gildong.hong@gmail.com');
+    expect(queryResult[0].primary_addr).toBe(1); // true
+    expect(queryResult[0].verified).toBe(0); // false
+    const emailId = queryResult[0].id;
+    // user_email_verify_ticket table
+    queryResult = await testEnv.dbClient.query(
+      `SELECT * FROM user_email_verify_ticket WHERE email_id=${emailId}`
+    );
+    expect(queryResult.length).toBe(1);
+    const expectedExpire = new Date();
+    expectedExpire.setDate(expectedExpire.getDate() + 2);
+    expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
+    expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
+    // user_phone_number table
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(0);
   });
 
   test('Success - all fields', async () => {
@@ -84,7 +167,50 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(200);
     expect(response.body.username).toBe('successtest');
 
-    // TODO DB Checks: user, user_email, user_email_ticket, user_phone_number(nothing)
+    // DB Checks
+    // user table
+    let queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].admission_year).toBe(10);
+    expect(queryResult[0].name_korean).toBe('홍길동');
+    expect(queryResult[0].name_english).toBe('Gildong Hong');
+    expect(queryResult[0].status).toBe('unverified');
+    expect(queryResult[0].admin).toBe(0); // False is 0
+    expect(queryResult[0].password).toBe(
+      TestConfig.hash(
+        'successtest',
+        new Date(queryResult[0].membersince).toISOString(),
+        'UserPassword12!'
+      )
+    );
+    // user_email table
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('gildong.hong@gmail.com');
+    expect(queryResult[0].primary_addr).toBe(1); // true
+    expect(queryResult[0].verified).toBe(0); // false
+    const emailId = queryResult[0].id;
+    // user_email_verify_ticket table
+    queryResult = await testEnv.dbClient.query(
+      `SELECT * FROM user_email_verify_ticket WHERE email_id=${emailId}`
+    );
+    expect(queryResult.length).toBe(1);
+    const expectedExpire = new Date();
+    expectedExpire.setDate(expectedExpire.getDate() + 2);
+    expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
+    expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
+    // user_phone_number table
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].country_code).toBe(82);
+    expect(queryResult[0].phone_number).toBe(1234567890);
   });
 
   test('Fail - Missing Required Field', async () => {
@@ -103,7 +229,12 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Bad Request');
 
-    // TODO DB Checks: user(nothing)
+    // DB Checks
+    // user table
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(0);
   });
 
   test('Fail - Additional Field', async () => {
@@ -124,7 +255,12 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Bad Request');
 
-    // TODO DB Checks: user(nothing)
+    // DB Checks
+    // user table
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(0);
   });
 
   test('fail - username rule', async () => {
@@ -179,7 +315,12 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Bad Request');
 
-    // TODO DB Checks: user(nothing)
+    // DB Checks
+    // user table
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(0);
   });
 
   // Password Rule Test
@@ -278,7 +419,12 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Bad Request');
 
-    // TODO DB Checks: user(nothing)
+    // DB Checks
+    // user table
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(0);
   });
 
   test('fail - invalid admissionYear', async () => {
@@ -315,7 +461,12 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Bad Request');
 
-    // TODO DB Checks: user(nothing)
+    // DB Checks
+    // user table
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='successtest'"
+    );
+    expect(queryResult.length).toBe(0);
 
     // Success at 13
     newUserForm.admissionYear = 13;
@@ -343,6 +494,23 @@ describe('POST /user - create new user', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Duplicated Username');
 
-    // TODO DB Checks: user(not changed)
+    // DB Checks
+    // user table
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='admin1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].admission_year).toBe(6);
+    expect(queryResult[0].name_korean).toBe('최영재');
+    expect(queryResult[0].name_english).toBe('Youngjae Choi');
+    expect(queryResult[0].status).toBe('verified');
+    expect(queryResult[0].admin).toBe(1); // False is 0
+    expect(queryResult[0].password).toBe(
+      TestConfig.hash(
+        'admin1',
+        new Date(queryResult[0].membersince).toISOString(),
+        'rootPW12!@'
+      )
+    );
   });
 });

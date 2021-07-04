@@ -112,7 +112,7 @@ export default class TestEnv {
 
     // Close database/redis connection used during tests
     await this.dbClient.end();
-    this.redisClient.end(true);
+    this.redisClient.quit();
   }
 
   /**

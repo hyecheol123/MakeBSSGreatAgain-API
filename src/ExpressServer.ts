@@ -95,6 +95,6 @@ export default class ExpressServer {
    */
   async closeServer(): Promise<void> {
     await this.app.locals.dbClient.end();
-    this.app.locals.redisClient.end(true);
+    this.app.locals.redisClient.quit();
   }
 }
