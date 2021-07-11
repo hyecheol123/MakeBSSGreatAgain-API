@@ -13,8 +13,8 @@ export const validateNewUserForm = addFormats(new Ajv()).compile({
     username: {type: 'string'},
     password: {type: 'string'},
     admissionYear: {type: 'integer', minimum: 1},
-    nameKorean: {type: 'string'},
-    nameEnglish: {type: 'string'},
+    legalName: {type: 'string'},
+    nickname: {type: 'string'},
     email: {type: 'string', format: 'email'},
     phoneNumber: {
       type: 'object',
@@ -26,6 +26,6 @@ export const validateNewUserForm = addFormats(new Ajv()).compile({
       additionalProperties: false,
     },
   },
-  required: ['username', 'password', 'admissionYear', 'nameKorean', 'email'],
+  required: ['username', 'password', 'admissionYear', 'legalName', 'email'],
   additionalProperties: false,
 });

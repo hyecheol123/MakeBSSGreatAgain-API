@@ -57,10 +57,10 @@ userRouter.post('/', async (req, res, next) => {
       hashedPW,
       memberSince,
       newUserForm.admissionYear,
-      newUserForm.nameKorean,
+      newUserForm.legalName,
       'unverified',
       false,
-      newUserForm.nameEnglish
+      newUserForm.nickname
     );
     await User.create(dbClient, user);
 
