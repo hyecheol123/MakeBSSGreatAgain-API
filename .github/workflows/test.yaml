@@ -28,12 +28,23 @@ jobs:
         architecture:
           - x64
     
+    # Service containers to run with test
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub Image (Using Redis 5.0.x)
+        image: redis:5.0
+        ports:
+          # Maps port 6379 on service container to the host
+          - 6379:6379
+    
     name: Node ${{ matrix.node_version }} - ${{ matrix.architecture }} on ${{ matrix.os }}
     
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Check out repository code
+        uses: actions/checkout@v2
 
       # Setup MySQL (MariaDB Not supported for GitHub Action)
       - name: Setup MySQL
