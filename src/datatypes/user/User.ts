@@ -17,7 +17,7 @@ export default class User implements LoginCredentials {
   memberSince: Date;
   admissionYear: number;
   legalName: string;
-  nickname: string | null; // null for DB
+  nickname: string | null | undefined; // null for DB
   status: 'verified' | 'unverified' | 'suspended' | 'deleted';
   admin: boolean;
 
@@ -41,7 +41,7 @@ export default class User implements LoginCredentials {
     legalName: string,
     status: 'verified' | 'unverified' | 'suspended' | 'deleted',
     admin: boolean,
-    nickname: string
+    nickname?: string
   ) {
     this.username = username;
     this.password = password;

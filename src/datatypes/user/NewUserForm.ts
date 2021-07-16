@@ -12,7 +12,7 @@ export default interface NewUserForm {
   password: string;
   admissionYear: number;
   legalName: string; // Korean name
-  nickname: string;
+  nickname?: string;
   email: string;
   phoneNumber: {countryCode: number; phoneNumber: number};
 }
