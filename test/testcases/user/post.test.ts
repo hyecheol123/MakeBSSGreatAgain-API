@@ -160,6 +160,10 @@ describe('POST /user - create new user', () => {
       nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
+      affiliation: {
+        schoolCompany: 'Busan Science High School',
+        majorPosition: 'student',
+      },
     };
     const response = await request(testEnv.expressServer.app)
       .post('/user')
@@ -185,6 +189,7 @@ describe('POST /user - create new user', () => {
         'UserPassword12!'
       )
     );
+    // TODO: Check Affiliation
     // user_email table
     queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user_email WHERE username='successtest'"
@@ -215,15 +220,38 @@ describe('POST /user - create new user', () => {
 
   test('Fail - Missing Required Field', async () => {
     // request
-    const newUserForm = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newUserForm: any = {
       username: 'successtest',
       admissionYear: 10,
       legalName: '홍길동',
       nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
+      affiliation: {
+        schoolCompany: 'Busan Science High School',
+        majorPosition: 'student',
+      },
     };
-    const response = await request(testEnv.expressServer.app)
+    let response = await request(testEnv.expressServer.app)
+      .post('/user')
+      .send(newUserForm);
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Bad Request');
+
+    // Without required field in nested object
+    // without phoneNumber.phoneNumber
+    newUserForm.phoneNumber = {countryCode: 82};
+    newUserForm.password = 'UserPassword12!';
+    response = await request(testEnv.expressServer.app)
+      .post('/user')
+      .send(newUserForm);
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Bad Request');
+    // Without affiliation.majorPosition
+    newUserForm.phoneNumber = {countryCode: 82, phoneNumber: 1234567890};
+    newUserForm.affiliation = {schoolCompany: 'Busan Science High School'};
+    response = await request(testEnv.expressServer.app)
       .post('/user')
       .send(newUserForm);
     expect(response.status).toBe(400);

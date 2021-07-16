@@ -14,5 +14,6 @@ export default interface NewUserForm {
   legalName: string; // Korean name
   nickname?: string;
   email: string;
-  phoneNumber: {countryCode: number; phoneNumber: number};
+  phoneNumber?: {countryCode: number; phoneNumber: number};
+  affiliation?: {schoolCompany: string; majorPosition: string};
 }
