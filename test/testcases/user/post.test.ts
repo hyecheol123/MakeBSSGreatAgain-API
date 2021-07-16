@@ -245,7 +245,7 @@ describe('POST /user - create new user', () => {
       admissionYear: 10,
       legalName: '홍길동',
       nickname: 'Road Hong',
-	  nameEnglish: 'Gildong Hong',
+      nameEnglish: 'Gildong Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -502,7 +502,7 @@ describe('POST /user - create new user', () => {
     expect(queryResult.length).toBe(1);
     expect(queryResult[0].admission_year).toBe(6);
     expect(queryResult[0].legal_name).toBe('최영재');
-    expect(queryResult[0].nickname).toBe('Youngjae Choi');
+    expect(queryResult[0].nickname).toBe('나똑똑');
     expect(queryResult[0].status).toBe('verified');
     expect(queryResult[0].admin).toBe(1); // False is 0
     expect(queryResult[0].password).toBe(
