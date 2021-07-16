@@ -129,8 +129,8 @@ export default class TestEnv {
         'password CHAR(88) NOT NULL,',
         'membersince TIMESTAMP NOT NULL,',
         'admission_year TINYINT(2) NOT NULL,',
-        'name_korean VARCHAR(255) NOT NULL,',
-        'name_english VARCHAR(255) NULL DEFAULT NULL,',
+        'legal_name VARCHAR(255) NOT NULL,',
+        'nickname VARCHAR(255) NULL DEFAULT NULL,',
         'status VARCHAR(10) NOT NULL,',
         'admin BOOLEAN NOT NULL',
         ') CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=MEMORY;'
@@ -208,7 +208,7 @@ export default class TestEnv {
       userTimestamp,
       6,
       '최영재',
-      'Youngjae Choi',
+      '나똑똑',
       'verified',
       true,
     ]);
@@ -240,7 +240,7 @@ export default class TestEnv {
     await this.dbClient.batch(
       String.prototype.concat(
         'INSERT INTO user ',
-        '(username, password, membersince, admission_year, name_korean, name_english, status, admin) ',
+        '(username, password, membersince, admission_year, legal_name, nickname, status, admin) ',
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
       ),
       userSamples

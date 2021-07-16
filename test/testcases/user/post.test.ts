@@ -31,13 +31,13 @@ describe('POST /user - create new user', () => {
     await testEnv.stop();
   });
 
-  test('Success - without english name', async () => {
+  test('Success - without nickname', async () => {
     // request
     const newUserForm = {
       username: 'successtest',
       password: 'UserPassword12!',
       admissionYear: 10,
-      nameKorean: '홍길동',
+      legalName: '홍길동',
       email: 'gildong.hong@gmail.com',
     };
     const response = await request(testEnv.expressServer.app)
@@ -53,8 +53,8 @@ describe('POST /user - create new user', () => {
     );
     expect(queryResult.length).toBe(1);
     expect(queryResult[0].admission_year).toBe(10);
-    expect(queryResult[0].name_korean).toBe('홍길동');
-    expect(queryResult[0].name_english).toBe(null);
+    expect(queryResult[0].legal_name).toBe('홍길동');
+    expect(queryResult[0].nickname).toBe(null);
     expect(queryResult[0].status).toBe('unverified');
     expect(queryResult[0].admin).toBe(0); // False is 0
     expect(queryResult[0].password).toBe(
@@ -90,14 +90,14 @@ describe('POST /user - create new user', () => {
     expect(queryResult.length).toBe(0);
   });
 
-  test('Success - with english name', async () => {
+  test('Success - with nickname', async () => {
     // request
     const newUserForm = {
       username: 'successtest',
       password: 'UserPassword12!',
       admissionYear: 10,
-      nameKorean: '홍길동',
-      nameEnglish: 'Gildong Hong',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
     };
     const response = await request(testEnv.expressServer.app)
@@ -113,8 +113,8 @@ describe('POST /user - create new user', () => {
     );
     expect(queryResult.length).toBe(1);
     expect(queryResult[0].admission_year).toBe(10);
-    expect(queryResult[0].name_korean).toBe('홍길동');
-    expect(queryResult[0].name_english).toBe('Gildong Hong');
+    expect(queryResult[0].legal_name).toBe('홍길동');
+    expect(queryResult[0].nickname).toBe('Road Hong');
     expect(queryResult[0].status).toBe('unverified');
     expect(queryResult[0].admin).toBe(0); // False is 0
     expect(queryResult[0].password).toBe(
@@ -156,8 +156,8 @@ describe('POST /user - create new user', () => {
       username: 'successtest',
       password: 'UserPassword12!',
       admissionYear: 10,
-      nameKorean: '홍길동',
-      nameEnglish: 'Gildong Hong',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -174,8 +174,8 @@ describe('POST /user - create new user', () => {
     );
     expect(queryResult.length).toBe(1);
     expect(queryResult[0].admission_year).toBe(10);
-    expect(queryResult[0].name_korean).toBe('홍길동');
-    expect(queryResult[0].name_english).toBe('Gildong Hong');
+    expect(queryResult[0].legal_name).toBe('홍길동');
+    expect(queryResult[0].nickname).toBe('Road Hong');
     expect(queryResult[0].status).toBe('unverified');
     expect(queryResult[0].admin).toBe(0); // False is 0
     expect(queryResult[0].password).toBe(
@@ -218,8 +218,8 @@ describe('POST /user - create new user', () => {
     const newUserForm = {
       username: 'successtest',
       admissionYear: 10,
-      nameKorean: '홍길동',
-      nameEnglish: 'Gildong Hong',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -243,9 +243,9 @@ describe('POST /user - create new user', () => {
       username: 'successtest',
       password: 'UserPassword12!',
       admissionYear: 10,
-      nameKorean: '홍길동',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       nameEnglish: 'Gildong Hong',
-      nickname: '홍길순',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -269,8 +269,8 @@ describe('POST /user - create new user', () => {
       username: '123456',
       password: 'UserPassword12!',
       admissionYear: 10,
-      nameKorean: '홍길동',
-      nameEnglish: 'Gildong Hong',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -330,8 +330,8 @@ describe('POST /user - create new user', () => {
       username: 'successtest',
       password: 'UserPassword12',
       admissionYear: 10,
-      nameKorean: '홍길동',
-      nameEnglish: 'Gildong Hong',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -436,8 +436,8 @@ describe('POST /user - create new user', () => {
       username: 'successtest',
       password: 'UserPassword12!',
       admissionYear: 0,
-      nameKorean: '홍길동',
-      nameEnglish: 'Gildong Hong',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -483,8 +483,8 @@ describe('POST /user - create new user', () => {
       username: 'admin1',
       password: 'UserPassword12!',
       admissionYear: 10,
-      nameKorean: '홍길동',
-      nameEnglish: 'Gildong Hong',
+      legalName: '홍길동',
+      nickname: 'Road Hong',
       email: 'gildong.hong@gmail.com',
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
     };
@@ -501,8 +501,8 @@ describe('POST /user - create new user', () => {
     );
     expect(queryResult.length).toBe(1);
     expect(queryResult[0].admission_year).toBe(6);
-    expect(queryResult[0].name_korean).toBe('최영재');
-    expect(queryResult[0].name_english).toBe('Youngjae Choi');
+    expect(queryResult[0].legal_name).toBe('최영재');
+    expect(queryResult[0].nickname).toBe('나똑똑');
     expect(queryResult[0].status).toBe('verified');
     expect(queryResult[0].admin).toBe(1); // False is 0
     expect(queryResult[0].password).toBe(

@@ -11,8 +11,8 @@ export default interface NewUserForm {
   username: string;
   password: string;
   admissionYear: number;
-  nameKorean: string;
-  nameEnglish?: string;
+  legalName: string; // Korean name
+  nickname?: string;
   email: string;
   phoneNumber: {countryCode: number; phoneNumber: number};
 }

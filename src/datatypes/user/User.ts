@@ -16,8 +16,8 @@ export default class User implements LoginCredentials {
   password: string; // Hashed Password
   memberSince: Date;
   admissionYear: number;
-  nameKorean: string;
-  nameEnglish?: string | null; // null for DB
+  legalName: string;
+  nickname: string | null | undefined; // null for DB
   status: 'verified' | 'unverified' | 'suspended' | 'deleted';
   admin: boolean;
 
@@ -27,28 +27,28 @@ export default class User implements LoginCredentials {
    * @param username unique username of the user (Maximum 12 character)
    * @param password user's password
    * @param memberSince When user signed up
-   * @param admissionYear When user admitted to BSS (year 2003 --> admissionYear 1)
-   * @param nameKorean korean name of user
+   * @param admissionYear When user admitted to BSS (year 2003 -> admissionYear 1)
+   * @param legalName Korean name of user
    * @param status member status (either 'verified' | 'unverified' | 'suspended' | 'deleted')
    * @param admin whether the user is admin or not
-   * @param nameEnglish optional field for english name of user
+   * @param nickname optional field for nickname of user
    */
   constructor(
     username: string,
     password: string,
     memberSince: Date,
     admissionYear: number,
-    nameKorean: string,
+    legalName: string,
     status: 'verified' | 'unverified' | 'suspended' | 'deleted',
     admin: boolean,
-    nameEnglish?: string
+    nickname?: string
   ) {
     this.username = username;
     this.password = password;
     this.memberSince = memberSince;
     this.admissionYear = admissionYear;
-    this.nameKorean = nameKorean;
-    this.nameEnglish = nameEnglish;
+    this.legalName = legalName;
+    this.nickname = nickname;
     this.status = status;
     this.admin = admin;
   }
@@ -64,14 +64,14 @@ export default class User implements LoginCredentials {
     dbClient: mariadb.Pool,
     user: User
   ): Promise<mariadb.UpsertResult> {
-    if (user.nameEnglish === undefined) {
-      user.nameEnglish = null;
+    if (user.nickname === undefined) {
+      user.nickname = null;
     }
     try {
       return await dbClient.query(
         String.prototype.concat(
           'INSERT INTO user ',
-          '(username, password, membersince, admission_year, name_korean, name_english, status, admin) ',
+          '(username, password, membersince, admission_year, legal_name, nickname, status, admin) ',
           'VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         ),
         [
@@ -79,8 +79,8 @@ export default class User implements LoginCredentials {
           user.password,
           user.memberSince,
           user.admissionYear,
-          user.nameKorean,
-          user.nameEnglish,
+          user.legalName,
+          user.nickname,
           user.status,
           user.admin,
         ]

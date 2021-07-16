@@ -48,8 +48,8 @@ Data Diagram for the database
     password CHAR(88) NOT NULL,
     membersince TIMESTAMP NOT NULL,
     admission_year TINYINT(2) NOT NULL,
-    name_korean VARCHAR(255) NOT NULL,
-    name_english VARCHAR(255) NULL DEFAULT NULL,
+    legal_name VARCHAR(255) NOT NULL,
+    nickname VARCHAR(255) NULL DEFAULT NULL,
     status VARCHAR(10) NOT NULL,
     admin BOOLEAN NOT NULL
   ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
