@@ -15,5 +15,5 @@ export default interface NewUserForm {
   nickname?: string;
   email: string;
   phoneNumber?: {countryCode: number; phoneNumber: number};
-  affiliation?: {schoolCompany: string; majorPosition: string};
+  affiliation?: {schoolCompany: string; majorDepartment: string};
 }

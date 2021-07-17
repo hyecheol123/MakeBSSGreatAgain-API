@@ -162,7 +162,7 @@ describe('POST /user - create new user', () => {
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
       affiliation: {
         schoolCompany: 'Busan Science High School',
-        majorPosition: 'student',
+        majorDepartment: 'student',
       },
     };
     const response = await request(testEnv.expressServer.app)
@@ -230,7 +230,7 @@ describe('POST /user - create new user', () => {
       phoneNumber: {countryCode: 82, phoneNumber: 1234567890},
       affiliation: {
         schoolCompany: 'Busan Science High School',
-        majorPosition: 'student',
+        majorDepartment: 'student',
       },
     };
     let response = await request(testEnv.expressServer.app)
@@ -248,7 +248,7 @@ describe('POST /user - create new user', () => {
       .send(newUserForm);
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Bad Request');
-    // Without affiliation.majorPosition
+    // Without affiliation.majorDepartment
     newUserForm.phoneNumber = {countryCode: 82, phoneNumber: 1234567890};
     newUserForm.affiliation = {schoolCompany: 'Busan Science High School'};
     response = await request(testEnv.expressServer.app)
