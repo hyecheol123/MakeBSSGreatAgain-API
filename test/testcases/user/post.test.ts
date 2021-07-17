@@ -64,6 +64,8 @@ describe('POST /user - create new user', () => {
         'UserPassword12!'
       )
     );
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
     // user_email table
     queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user_email WHERE username='successtest'"
@@ -124,6 +126,8 @@ describe('POST /user - create new user', () => {
         'UserPassword12!'
       )
     );
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
     // user_email table
     queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user_email WHERE username='successtest'"
@@ -189,7 +193,8 @@ describe('POST /user - create new user', () => {
         'UserPassword12!'
       )
     );
-    // TODO: Check Affiliation
+    expect(queryResult[0].school_company).toBe('Busan Science High School');
+    expect(queryResult[0].major_department).toBe('student');
     // user_email table
     queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user_email WHERE username='successtest'"

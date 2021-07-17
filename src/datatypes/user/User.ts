@@ -18,8 +18,8 @@ export default class User implements LoginCredentials {
   admissionYear: number;
   legalName: string;
   nickname: string | null | undefined; // null for DB
-  schoolCompany: string | null | undefined; // how about default value like 'BSS'
-  majorPosition: string | null | undefined; // how about default value like 'alumni'
+  schoolCompany: string | null | undefined; // null for DB
+  majorDepartment: string | null | undefined; // null for DB
   status: 'verified' | 'unverified' | 'suspended' | 'deleted';
   admin: boolean;
 
@@ -35,7 +35,7 @@ export default class User implements LoginCredentials {
    * @param admin whether the user is admin or not
    * @param nickname optional field for nickname of user
    * @param schoolCompany optional field for School/Company info of user
-   * @param majorPosition optional field for Major/Position of user
+   * @param majorDepartment optional field for Major/Department of user
    */
   constructor(
     username: string,
@@ -46,8 +46,8 @@ export default class User implements LoginCredentials {
     status: 'verified' | 'unverified' | 'suspended' | 'deleted',
     admin: boolean,
     nickname?: string,
-	schoolCompany?: string,
-	majorPosition?: string
+    schoolCompany?: string,
+    majorDepartment?: string
   ) {
     this.username = username;
     this.password = password;
@@ -55,8 +55,8 @@ export default class User implements LoginCredentials {
     this.admissionYear = admissionYear;
     this.legalName = legalName;
     this.nickname = nickname;
-	this.schoolCompany = schoolCompany;
-	this.majorPosition = majorPosition;
+    this.schoolCompany = schoolCompany;
+    this.majorDepartment = majorDepartment;
     this.status = status;
     this.admin = admin;
   }
@@ -75,12 +75,18 @@ export default class User implements LoginCredentials {
     if (user.nickname === undefined) {
       user.nickname = null;
     }
+    if (user.schoolCompany === undefined) {
+      user.schoolCompany = null;
+    }
+    if (user.majorDepartment === undefined) {
+      user.majorDepartment = null;
+    }
     try {
       return await dbClient.query(
         String.prototype.concat(
           'INSERT INTO user ',
-          '(username, password, membersince, admission_year, legal_name, nickname, status, admin) ',
-          'VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+          '(username, password, membersince, admission_year, legal_name, nickname, school_company, major_department, status, admin) ',
+          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         ),
         [
           user.username,
@@ -89,6 +95,8 @@ export default class User implements LoginCredentials {
           user.admissionYear,
           user.legalName,
           user.nickname,
+          user.schoolCompany,
+          user.majorDepartment,
           user.status,
           user.admin,
         ]
