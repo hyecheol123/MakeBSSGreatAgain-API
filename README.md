@@ -50,6 +50,8 @@ Data Diagram for the database
     admission_year TINYINT(2) NOT NULL,
     legal_name VARCHAR(255) NOT NULL,
     nickname VARCHAR(255) NULL DEFAULT NULL,
+    school_company VARCHAR(255) NULL DEFAULT NULL,
+    major_department VARCHAR(255) NULL DEFAULT NULL,
     status VARCHAR(10) NOT NULL,
     admin BOOLEAN NOT NULL
   ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

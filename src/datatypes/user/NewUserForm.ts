@@ -1,5 +1,5 @@
 /**
- * Define type for new uer form
+ * Define type for new user form
  *
  * @author Hyecheol (Jerry) Jang <hyecheol123@gmail.com>
  */
@@ -14,5 +14,6 @@ export default interface NewUserForm {
   legalName: string; // Korean name
   nickname?: string;
   email: string;
-  phoneNumber: {countryCode: number; phoneNumber: number};
+  phoneNumber?: {countryCode: number; phoneNumber: number};
+  affiliation?: {schoolCompany: string; majorDepartment: string};
 }

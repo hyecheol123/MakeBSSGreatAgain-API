@@ -25,6 +25,15 @@ export const validateNewUserForm = addFormats(new Ajv()).compile({
       required: ['countryCode', 'phoneNumber'],
       additionalProperties: false,
     },
+    affiliation: {
+      type: 'object',
+      properties: {
+        schoolCompany: {type: 'string'},
+        majorDepartment: {type: 'string'},
+      },
+      required: ['schoolCompany', 'majorDepartment'],
+      additionalProperties: false,
+    },
   },
   required: ['username', 'password', 'admissionYear', 'legalName', 'email'],
   additionalProperties: false,

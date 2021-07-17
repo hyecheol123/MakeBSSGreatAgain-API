@@ -62,6 +62,10 @@ userRouter.post('/', async (req, res, next) => {
       false,
       newUserForm.nickname
     );
+    if (newUserForm.affiliation !== undefined) {
+      user.schoolCompany = newUserForm.affiliation.schoolCompany;
+      user.majorDepartment = newUserForm.affiliation.majorDepartment;
+    }
     await User.create(dbClient, user);
 
     // UserEmail
