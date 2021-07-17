@@ -60,7 +60,9 @@ userRouter.post('/', async (req, res, next) => {
       newUserForm.legalName,
       'unverified',
       false,
-      newUserForm.nickname
+      newUserForm.nickname,
+	  newUserForm.affiliation.schoolCompany,
+	  newUserForm.affiliation.majorDepartment
     );
     await User.create(dbClient, user);
 

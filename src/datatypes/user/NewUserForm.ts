@@ -1,5 +1,5 @@
 /**
- * Define type for new uer form
+ * Define type for new user form
  *
  * @author Hyecheol (Jerry) Jang <hyecheol123@gmail.com>
  */

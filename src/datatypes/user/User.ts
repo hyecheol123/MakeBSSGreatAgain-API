@@ -18,6 +18,8 @@ export default class User implements LoginCredentials {
   admissionYear: number;
   legalName: string;
   nickname: string | null | undefined; // null for DB
+  schoolCompany: string | null | undefined; // how about default value like 'BSS'
+  majorPosition: string | null | undefined; // how about default value like 'alumni'
   status: 'verified' | 'unverified' | 'suspended' | 'deleted';
   admin: boolean;
 
@@ -32,6 +34,8 @@ export default class User implements LoginCredentials {
    * @param status member status (either 'verified' | 'unverified' | 'suspended' | 'deleted')
    * @param admin whether the user is admin or not
    * @param nickname optional field for nickname of user
+   * @param schoolCompany optional field for School/Company info of user
+   * @param majorPosition optional field for Major/Position of user
    */
   constructor(
     username: string,
@@ -41,7 +45,9 @@ export default class User implements LoginCredentials {
     legalName: string,
     status: 'verified' | 'unverified' | 'suspended' | 'deleted',
     admin: boolean,
-    nickname?: string
+    nickname?: string,
+	schoolCompany?: string,
+	majorPosition?: string
   ) {
     this.username = username;
     this.password = password;
@@ -49,6 +55,8 @@ export default class User implements LoginCredentials {
     this.admissionYear = admissionYear;
     this.legalName = legalName;
     this.nickname = nickname;
+	this.schoolCompany = schoolCompany;
+	this.majorPosition = majorPosition;
     this.status = status;
     this.admin = admin;
   }
