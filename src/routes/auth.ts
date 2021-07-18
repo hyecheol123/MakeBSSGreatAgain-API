@@ -5,6 +5,8 @@
  */
 
 import * as express from 'express';
+import * as redis from 'redis';
+import * as mariadb from 'mariadb';
 import ServerConfig from '../ServerConfig';
 import {validateLoginCredentials} from '../functions/inputValidator/validateLoginCredentials';
 import usernameRule from '../functions/inputValidator/usernameRule';
@@ -15,15 +17,16 @@ import LoginCredentials from '../datatypes/authentication/LoginCredentials';
 import User from '../datatypes/user/User';
 import accessTokenCreate from '../functions/JWT/accessTokenCreate';
 import refreshTokenCreate from '../functions/JWT/refreshTokenCreate';
+import refreshTokenVerify from '../functions/JWT/refreshTokenVerify';
 import HTTPError from '../exceptions/HTTPError';
 
 // Path: /auth
 const authRouter = express.Router();
 
-// POST: /login
+// POST: /auth/login
 authRouter.post('/login', async (req, res, next) => {
-  const dbClient = req.app.locals.dbClient;
-  const redisClient = req.app.locals.redisClient;
+  const dbClient: mariadb.Pool = req.app.locals.dbClient;
+  const redisClient: redis.RedisClient = req.app.locals.redisClient;
 
   try {
     // Verify Input
@@ -96,6 +99,32 @@ authRouter.post('/login', async (req, res, next) => {
     cookieOption.maxAge = 120 * 60;
     cookieOption.path = '/auth';
     res.cookie('X-REFRESH-TOKEN', refreshToken, cookieOption);
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+});
+
+// DELETE: /auth/logout
+authRouter.delete('/logout', async (req, res, next) => {
+  try {
+    const redisClient: redis.RedisClient = req.app.locals.redisClient;
+
+    // Verify Refresh Token
+    const verifyResult = refreshTokenVerify(
+      req,
+      req.app.get('jwtRefreshKey'),
+      redisClient
+    );
+    if (verifyResult.newToken !== undefined) {
+      redisClient.del(
+        `${verifyResult.content.username}_${verifyResult.newToken}`
+      );
+    }
+
+    // Clear Cookie & Response
+    res.clearCookie('X-ACCESS-TOKEN', {httpOnly: true, maxAge: 0});
+    res.clearCookie('X-REFRESH-TOKEN', {httpOnly: true, maxAge: 0});
     res.status(200).send();
   } catch (e) {
     next(e);
