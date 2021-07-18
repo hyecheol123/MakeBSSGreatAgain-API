@@ -20,6 +20,9 @@ import refreshTokenCreate from '../functions/JWT/refreshTokenCreate';
 import refreshTokenVerify from '../functions/JWT/refreshTokenVerify';
 import redisDel from '../functions/asyncRedis/redisDel';
 import HTTPError from '../exceptions/HTTPError';
+import redisTtl from '../functions/asyncRedis/redisTtl';
+import redisSetEX from '../functions/asyncRedis/redisSet';
+import redisScan from '../functions/asyncRedis/redisScan';
 
 // Path: /auth
 const authRouter = express.Router();
@@ -131,6 +134,66 @@ authRouter.delete('/logout', async (req, res, next) => {
     // Clear Cookie & Response
     res.clearCookie('X-ACCESS-TOKEN', {httpOnly: true, maxAge: 0});
     res.clearCookie('X-REFRESH-TOKEN', {httpOnly: true, maxAge: 0});
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+});
+
+// DELETE: /auth/logout/other-sessions
+authRouter.delete('/logout/other-sessions', async (req, res, next) => {
+  try {
+    const redisClient: redis.RedisClient = req.app.locals.redisClient;
+    let refreshToken = req.cookies['X-REFRESH-TOKEN'];
+
+    // Verify Refresh Token
+    const verifyResult = await refreshTokenVerify(
+      req,
+      req.app.get('jwtRefreshKey'),
+      redisClient
+    );
+    if (verifyResult.newToken !== undefined) {
+      refreshToken = verifyResult.newToken;
+
+      // Send newly generated refreshToken
+      const cookieOption: express.CookieOptions = {
+        httpOnly: true,
+        maxAge: 120 * 60,
+        secure: true,
+        domain: 'api.bshs.or.kr',
+        path: '/auth',
+        sameSite: 'strict',
+      };
+      res.cookie('X-REFRESH-TOKEN', refreshToken, cookieOption);
+    }
+
+    // Retrieve remaining time to expire of current token
+    const remainingTtl = await redisTtl(
+      `${verifyResult.content.username}_${refreshToken}`,
+      redisClient
+    );
+
+    // Remove tokens from redis server
+    const tokenArrays = await Promise.all([
+      redisScan(`${verifyResult.content.username}_*`, redisClient),
+      // For test
+      redisScan(`*_${verifyResult.content.username}_*`, redisClient),
+    ]);
+    const tokens = tokenArrays[0];
+    tokenArrays[1].map(token =>
+      tokens.concat(token.substr(token.indexOf('_') + 1))
+    );
+    await Promise.all(tokens.map(token => redisDel(token, redisClient)));
+
+    // Add current token to redis server
+    await redisSetEX(
+      `${verifyResult.content.username}_${refreshToken}`,
+      '',
+      remainingTtl,
+      redisClient
+    );
+
+    // response
     res.status(200).send();
   } catch (e) {
     next(e);

@@ -11,7 +11,7 @@ import * as jwt from 'jsonwebtoken';
 import MockDate from 'mockdate';
 import TestEnv from '../../TestEnv';
 import AuthToken from '../../../src/datatypes/authentication/AuthToken';
-import redisScan from '../../functions/asyncRedis/redisScan';
+import redisScan from '../../../src/functions/asyncRedis/redisScan';
 
 describe('DELETE /auth/logout - logout from current session', () => {
   let testEnv: TestEnv;

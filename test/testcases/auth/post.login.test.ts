@@ -10,8 +10,8 @@ import * as jwt from 'jsonwebtoken';
 // eslint-disable-next-line node/no-unpublished-import
 import MockDate from 'mockdate';
 import TestEnv from '../../TestEnv';
-import redisScan from '../../functions/asyncRedis/redisScan';
-import redisTtl from '../../functions/asyncRedis/redisTtl';
+import redisScan from '../../../src/functions/asyncRedis/redisScan';
+import redisTtl from '../../../src/functions/asyncRedis/redisTtl';
 import AuthToken from '../../../src/datatypes/authentication/AuthToken';
 
 describe('POST /auth/login - login', () => {

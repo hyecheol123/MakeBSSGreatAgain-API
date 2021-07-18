@@ -25,7 +25,8 @@ export default class TestConfig extends ServerConfigTemplate {
       .createHash('sha1')
       .update(identifier)
       .digest('base64')
-      .substr(0, 10);
+      .substr(0, 10)
+      .replace(/-/g, 'a');
     const config: ConfigObj = {
       db: {
         url: 'localhost',

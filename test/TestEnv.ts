@@ -15,7 +15,7 @@ import * as mariadb from 'mariadb';
 import * as redis from 'redis';
 import TestConfig from './TestConfig';
 import ExpressServer from '../src/ExpressServer';
-import redisScan from './functions/asyncRedis/redisScan';
+import redisScan from '../src/functions/asyncRedis/redisScan';
 import redisDel from '../src/functions/asyncRedis/redisDel';
 
 /**
@@ -113,7 +113,9 @@ export default class TestEnv {
       this.redisClient
     );
     await Promise.all(
-      keys.map(key => redisDel(key.substr(11), this.redisClient))
+      keys.map(key =>
+        redisDel(key.substr(key.indexOf('_') + 1), this.redisClient)
+      )
     );
 
     // Close database connection of the express server
