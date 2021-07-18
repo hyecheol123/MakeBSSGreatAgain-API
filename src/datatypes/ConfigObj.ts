@@ -37,6 +37,7 @@ export interface RedisObj {
   user: string;
   password?: string;
   db: number; // Default database name
+  prefix?: string; // prefix of key
 }
 
 /**

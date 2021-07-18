@@ -15,6 +15,8 @@ import * as mariadb from 'mariadb';
 import * as redis from 'redis';
 import TestConfig from './TestConfig';
 import ExpressServer from '../src/ExpressServer';
+import redisScan from './functions/asyncRedis/redisScan';
+import redisDel from '../src/functions/asyncRedis/redisDel';
 
 /**
  * Class for Test Environment
@@ -106,6 +108,13 @@ export default class TestEnv {
   async stop(): Promise<void> {
     // Drop database
     await this.dbClient.query(`DROP DATABASE db_${this.dbIdentifier}`);
+    const keys = await redisScan(
+      `${this.testConfig.redisIdentifier}_*`,
+      this.redisClient
+    );
+    await Promise.all(
+      keys.map(key => redisDel(key.substr(11), this.redisClient))
+    );
 
     // Close database connection of the express server
     await this.expressServer.closeServer();

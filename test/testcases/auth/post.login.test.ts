@@ -10,6 +10,8 @@ import * as jwt from 'jsonwebtoken';
 // eslint-disable-next-line node/no-unpublished-import
 import MockDate from 'mockdate';
 import TestEnv from '../../TestEnv';
+import redisScan from '../../functions/asyncRedis/redisScan';
+import redisTtl from '../../functions/asyncRedis/redisTtl';
 import AuthToken from '../../../src/datatypes/authentication/AuthToken';
 
 describe('POST /auth/login - login', () => {
@@ -71,13 +73,17 @@ describe('POST /auth/login - login', () => {
     expect(tokenPayload.admin).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.ttl(`testuser1_${cookie[1]}`, (err, ttl) => {
-      if (err) {
-        fail();
-      }
-      expect(ttl).toBeLessThanOrEqual(120 * 60);
-      expect(ttl).toBeGreaterThan(0);
-    });
+    let resultTtl = await redisTtl(
+      `testuser1_${cookie[1]}`,
+      testEnv.redisClient
+    );
+    expect(resultTtl).toBeLessThanOrEqual(120 * 60);
+    expect(resultTtl).toBeGreaterThan(0);
+    let result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
 
     // Request - Verified non-admin user
     loginCredentials = {
@@ -116,13 +122,14 @@ describe('POST /auth/login - login', () => {
     expect(tokenPayload.admin).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.ttl(`testuser2_${cookie[1]}`, (err, ttl) => {
-      if (err) {
-        fail();
-      }
-      expect(ttl).toBeLessThanOrEqual(120 * 60);
-      expect(ttl).toBeGreaterThan(0);
-    });
+    resultTtl = await redisTtl(`testuser2_${cookie[1]}`, testEnv.redisClient);
+    expect(resultTtl).toBeLessThanOrEqual(120 * 60);
+    expect(resultTtl).toBeGreaterThan(0);
+    result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser2_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
 
     // Request - Verified admin user
     loginCredentials = {
@@ -161,13 +168,14 @@ describe('POST /auth/login - login', () => {
     expect(tokenPayload.admin).toBe(true);
 
     // Check redis
-    testEnv.redisClient.ttl(`admin1_${cookie[1]}`, (err, ttl) => {
-      if (err) {
-        fail();
-      }
-      expect(ttl).toBeLessThanOrEqual(120 * 60);
-      expect(ttl).toBeGreaterThan(0);
-    });
+    resultTtl = await redisTtl(`admin1_${cookie[1]}`, testEnv.redisClient);
+    expect(resultTtl).toBeLessThanOrEqual(120 * 60);
+    expect(resultTtl).toBeGreaterThan(0);
+    result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_admin1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
   });
 
   test('Success - Using newly created account', async () => {
@@ -229,13 +237,17 @@ describe('POST /auth/login - login', () => {
     expect(tokenPayload.admin).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.ttl(`successtest_${cookie[1]}`, (err, ttl) => {
-      if (err) {
-        fail();
-      }
-      expect(ttl).toBeLessThanOrEqual(120 * 60);
-      expect(ttl).toBeGreaterThan(0);
-    });
+    const resultTtl = await redisTtl(
+      `${testEnv.testConfig.redisIdentifier}_successtest_${cookie[1]}`,
+      testEnv.redisClient
+    );
+    expect(resultTtl).toBeLessThanOrEqual(120 * 60);
+    expect(resultTtl).toBeGreaterThan(0);
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_successtest_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
   });
 
   test('Success - Login Twice', async () => {
@@ -279,16 +291,21 @@ describe('POST /auth/login - login', () => {
     expect(tokenPayload.admin).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.ttl(`testuser1_${cookie[1]}`, (err, ttl) => {
-      if (err) {
-        fail();
-      }
-      expect(ttl).toBeLessThanOrEqual(120 * 60);
-      expect(ttl).toBeGreaterThan(0);
-    });
+    let resultTtl = await redisTtl(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_${cookie[1]}`,
+      testEnv.redisClient
+    );
+    expect(resultTtl).toBeLessThanOrEqual(120 * 60);
+    expect(resultTtl).toBeGreaterThan(0);
+    let result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
 
     // Request - Second Login
-    MockDate.set(currentDate.setSeconds(currentDate.getSeconds() + 1));
+    currentDate.setSeconds(currentDate.getSeconds() + 1);
+    MockDate.set(currentDate);
     response = await request(testEnv.expressServer.app)
       .post('/auth/login')
       .send(loginCredentials);
@@ -321,13 +338,17 @@ describe('POST /auth/login - login', () => {
     expect(tokenPayload.admin).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.ttl(`testuser1_${cookie[1]}`, (err, ttl) => {
-      if (err) {
-        fail();
-      }
-      expect(ttl).toBeLessThanOrEqual(120 * 60);
-      expect(ttl).toBeGreaterThan(0);
-    });
+    resultTtl = await redisTtl(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_${cookie[1]}`,
+      testEnv.redisClient
+    );
+    expect(resultTtl).toBeLessThanOrEqual(120 * 60);
+    expect(resultTtl).toBeGreaterThan(0);
+    result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(2);
   });
 
   test('Fail - Suspended User', async () => {
@@ -346,12 +367,11 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('suspended1_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_suspended1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
   });
 
   test('Fail - Deleted User', async () => {
@@ -372,12 +392,11 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('deleted1_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_deleted1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
   });
 
   test('Fail - Missing Required field', async () => {
@@ -402,12 +421,11 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('testuser1_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
   });
 
   test('Fail - Additional field', async () => {
@@ -427,12 +445,11 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('testuser1_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
   });
 
   test('Fail - Not existing username', async () => {
@@ -453,12 +470,11 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('adminadminadimin_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    let result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_adminadminadimin_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
 
     // request - Not-existing username
     loginCredentials = {
@@ -477,12 +493,11 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('adminadminadimin_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_adminadminadimin_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
   });
 
   test('Fail - Wrong Password', async () => {
@@ -503,12 +518,11 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('admin1_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    let result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_admin1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
 
     // request - Incorrect password
     loginCredentials = {
@@ -527,11 +541,10 @@ describe('POST /auth/login - login', () => {
     expect(response.header['set-cookie']).toBeUndefined();
 
     // Check redis
-    testEnv.redisClient.exists('admin1_*', (err, count) => {
-      if (err) {
-        fail();
-      }
-      expect(count).toBe(0);
-    });
+    result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_admin1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(0);
   });
 });
