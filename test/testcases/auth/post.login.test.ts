@@ -238,7 +238,7 @@ describe('POST /auth/login - login', () => {
 
     // Check redis
     const resultTtl = await redisTtl(
-      `${testEnv.testConfig.redisIdentifier}_successtest_${cookie[1]}`,
+      `successtest_${cookie[1]}`,
       testEnv.redisClient
     );
     expect(resultTtl).toBeLessThanOrEqual(120 * 60);
@@ -292,7 +292,7 @@ describe('POST /auth/login - login', () => {
 
     // Check redis
     let resultTtl = await redisTtl(
-      `${testEnv.testConfig.redisIdentifier}_testuser1_${cookie[1]}`,
+      `testuser1_${cookie[1]}`,
       testEnv.redisClient
     );
     expect(resultTtl).toBeLessThanOrEqual(120 * 60);
@@ -338,10 +338,7 @@ describe('POST /auth/login - login', () => {
     expect(tokenPayload.admin).toBeUndefined();
 
     // Check redis
-    resultTtl = await redisTtl(
-      `${testEnv.testConfig.redisIdentifier}_testuser1_${cookie[1]}`,
-      testEnv.redisClient
-    );
+    resultTtl = await redisTtl(`testuser1_${cookie[1]}`, testEnv.redisClient);
     expect(resultTtl).toBeLessThanOrEqual(120 * 60);
     expect(resultTtl).toBeGreaterThan(0);
     result = await redisScan(
