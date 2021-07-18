@@ -123,7 +123,10 @@ authRouter.delete('/logout', async (req, res, next) => {
     }
 
     // Remove token from redis server
-    await redisDel(refreshToken, redisClient);
+    await redisDel(
+      `${verifyResult.content.username}_${refreshToken}`,
+      redisClient
+    );
 
     // Clear Cookie & Response
     res.clearCookie('X-ACCESS-TOKEN', {httpOnly: true, maxAge: 0});
