@@ -18,6 +18,7 @@ import User from '../datatypes/user/User';
 import accessTokenCreate from '../functions/JWT/accessTokenCreate';
 import refreshTokenCreate from '../functions/JWT/refreshTokenCreate';
 import refreshTokenVerify from '../functions/JWT/refreshTokenVerify';
+import redisDel from '../functions/asyncRedis/redisDel';
 import HTTPError from '../exceptions/HTTPError';
 
 // Path: /auth
@@ -78,7 +79,7 @@ authRouter.post('/login', async (req, res, next) => {
       user.admin,
       req.app.get('jwtAccessKey')
     );
-    const refreshToken = refreshTokenCreate(
+    const refreshToken = await refreshTokenCreate(
       user.username,
       user.status,
       user.admin,
@@ -109,18 +110,20 @@ authRouter.post('/login', async (req, res, next) => {
 authRouter.delete('/logout', async (req, res, next) => {
   try {
     const redisClient: redis.RedisClient = req.app.locals.redisClient;
+    let refreshToken = req.cookies['X-REFRESH-TOKEN'];
 
     // Verify Refresh Token
-    const verifyResult = refreshTokenVerify(
+    const verifyResult = await refreshTokenVerify(
       req,
       req.app.get('jwtRefreshKey'),
       redisClient
     );
     if (verifyResult.newToken !== undefined) {
-      redisClient.del(
-        `${verifyResult.content.username}_${verifyResult.newToken}`
-      );
+      refreshToken = verifyResult.newToken;
     }
+
+    // Remove token from redis server
+    await redisDel(refreshToken, redisClient);
 
     // Clear Cookie & Response
     res.clearCookie('X-ACCESS-TOKEN', {httpOnly: true, maxAge: 0});

@@ -11,6 +11,7 @@ import AuthToken from '../../datatypes/authentication/AuthToken';
 import JWTObject from '../../datatypes/authentication/JWTObject';
 import RefreshTokenVerifyResult from '../../datatypes/authentication/RefreshTokenVerifyResult';
 import AuthenticationError from '../../exceptions/AuthenticationError';
+import redisDel from '../asyncRedis/redisDel';
 import refreshTokenCreate from './refreshTokenCreate';
 
 /**
@@ -19,14 +20,14 @@ import refreshTokenCreate from './refreshTokenCreate';
  * @param req Express Request object
  * @param jwtRefreshKey JWT Refresh Token secret
  * @param redisClient redis client
- * @return {RefreshTokenVerifyResult} verification result of refresh token
+ * @return {Promise<RefreshTokenVerifyResult>} verification result of refresh token
  *   (new token included if the refresh token is about to expire)
  */
-export default function refreshTokenVerify(
+export default async function refreshTokenVerify(
   req: Request,
   jwtRefreshKey: string,
   redisClient: redis.RedisClient
-): RefreshTokenVerifyResult {
+): Promise<RefreshTokenVerifyResult> {
   if (!('X-REFRESH-TOKEN' in req.cookies)) {
     throw new AuthenticationError();
   }
@@ -54,17 +55,21 @@ export default function refreshTokenVerify(
     }
   );
 
-  // If RefreshToken expires within 20min, create new refresh token
+  // If RefreshToken expires within 20min, create new refresh token and delete previous one
   const expectedExpire = new Date();
   expectedExpire.setMinutes(new Date().getMinutes() + 20);
   let newRefreshToken;
   if (new Date((tokenContents.exp as number) * 1000) < expectedExpire) {
     // Less than 20 min remaining
-    newRefreshToken = refreshTokenCreate(
+    newRefreshToken = await refreshTokenCreate(
       tokenContents.username,
       tokenContents.status,
       tokenContents.admin,
       jwtRefreshKey,
+      redisClient
+    );
+    await redisDel(
+      `${tokenContents.username}_${req.cookies['X-REFRESH-TOKEN']}`,
       redisClient
     );
   }
