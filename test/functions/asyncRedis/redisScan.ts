@@ -33,6 +33,7 @@ export default async function redisScan(
           keys = keys.concat(keysScan);
         }
 
+        /* istanbul ignore else */
         if (cursor === '0') {
           return resolve(keys);
         } else {

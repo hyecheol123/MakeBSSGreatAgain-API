@@ -10,6 +10,7 @@ import * as jwt from 'jsonwebtoken';
 // eslint-disable-next-line node/no-unpublished-import
 import MockDate from 'mockdate';
 import TestEnv from '../../TestEnv';
+import AuthToken from '../../../src/datatypes/authentication/AuthToken';
 import redisScan from '../../functions/asyncRedis/redisScan';
 
 describe('DELETE /auth/logout - logout from current session', () => {
@@ -87,6 +88,7 @@ describe('DELETE /auth/logout - logout from current session', () => {
 
     // Logout Request
     currentDate.setMinutes(currentDate.getMinutes() + 101); // About to expire
+    MockDate.set(currentDate);
     response = await request(testEnv.expressServer.app)
       .delete('/auth/logout')
       .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`]);
@@ -135,11 +137,134 @@ describe('DELETE /auth/logout - logout from current session', () => {
     expect(result.length).toBe(1);
   });
 
-  test('Fail - Use unregistered refreshToken', async () => {});
+  test('Fail - Use unregistered refreshToken', async () => {
+    const currentDate = new Date();
 
-  test('Fail - Use expired refreshToken', async () => {});
+    // Create RefreshToken
+    MockDate.set(currentDate);
+    const tokenContents: AuthToken = {
+      username: 'testuser1',
+      type: 'refresh',
+      status: 'unverified',
+    };
+    const jwtOption: jwt.SignOptions = {
+      algorithm: 'HS512',
+      expiresIn: '120m',
+    };
+    const refreshToken = jwt.sign(
+      tokenContents,
+      testEnv.testConfig.jwt.refreshKey,
+      jwtOption
+    );
 
-  test('Fail - Use refreshToken generated with wrong key', async () => {});
+    // Login Request
+    currentDate.setSeconds(currentDate.getSeconds() + 1);
+    MockDate.set(currentDate);
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
 
-  test('Fail - No Token', async () => {});
+    // Logout Request
+    response = await request(testEnv.expressServer.app)
+      .delete('/auth/logout')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`]);
+    expect(response.status).toBe(401);
+
+    // Cookie Clear Check
+    expect(response.header['set-cookie']).toBeUndefined();
+
+    // Check redis server
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
+  });
+
+  test('Fail - Use expired refreshToken', async () => {
+    const currentDate = new Date();
+    // Login
+    MockDate.set(currentDate);
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
+    const refreshToken = response.header['set-cookie'][1]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // Logout Request
+    currentDate.setMinutes(currentDate.getMinutes() + 121); // Expired
+    MockDate.set(currentDate);
+    response = await request(testEnv.expressServer.app)
+      .delete('/auth/logout')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`]);
+    expect(response.status).toBe(401);
+
+    // Cookie Clear Check
+    expect(response.header['set-cookie']).toBeUndefined();
+
+    // Check redis server - Meaningless here
+    // Once TTL Exactly set, it will automatically removed
+    // Cannot be tested with MockDate
+  });
+
+  test('Fail - Use refreshToken generated with wrong key', async () => {
+    // Create RefreshToken
+    const tokenContents: AuthToken = {
+      username: 'testuser1',
+      type: 'refresh',
+      status: 'unverified',
+    };
+    const jwtOption: jwt.SignOptions = {
+      algorithm: 'HS512',
+      expiresIn: '120m',
+    };
+    const refreshToken = jwt.sign(tokenContents, 'dummyKey', jwtOption);
+
+    // Login Request
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
+
+    // Logout Request
+    response = await request(testEnv.expressServer.app)
+      .delete('/auth/logout')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`]);
+    expect(response.status).toBe(401);
+
+    // Cookie Clear Check
+    expect(response.header['set-cookie']).toBeUndefined();
+
+    // Check redis server
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
+  });
+
+  test('Fail - No Token', async () => {
+    // Login
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
+
+    // Logout Request
+    response = await request(testEnv.expressServer.app).delete('/auth/logout');
+    expect(response.status).toBe(401);
+
+    // Cookie Clear Check
+    expect(response.header['set-cookie']).toBeUndefined();
+
+    // Check redis server
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
+  });
 });

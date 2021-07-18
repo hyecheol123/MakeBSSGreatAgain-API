@@ -13,6 +13,7 @@ import RefreshTokenVerifyResult from '../../datatypes/authentication/RefreshToke
 import AuthenticationError from '../../exceptions/AuthenticationError';
 import redisDel from '../asyncRedis/redisDel';
 import refreshTokenCreate from './refreshTokenCreate';
+import redisGet from '../asyncRedis/redisGet';
 
 /**
  * Method to verify refreshToken
@@ -45,15 +46,19 @@ export default async function refreshTokenVerify(
   }
 
   // Check token in Redis Server
-  redisClient.get(
-    `${tokenContents.username}_${req.cookies['X-REFRESH-TOKEN']}`,
-    (err, reply) => {
-      if (err) throw err;
-      if (reply === null) {
-        throw new AuthenticationError();
-      }
+  try {
+    await redisGet(
+      `${tokenContents.username}_${req.cookies['X-REFRESH-TOKEN']}`,
+      redisClient
+    );
+  } catch (e) {
+    /* istanbul ignore else */
+    if (e.message === 'Not Found') {
+      throw new AuthenticationError();
+    } else {
+      throw e;
     }
-  );
+  }
 
   // If RefreshToken expires within 20min, create new refresh token and delete previous one
   const expectedExpire = new Date();
