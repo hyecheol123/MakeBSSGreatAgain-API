@@ -15,6 +15,7 @@ import LoginCredentials from '../datatypes/authentication/LoginCredentials';
 import User from '../datatypes/user/User';
 import accessTokenCreate from '../functions/JWT/accessTokenCreate';
 import refreshTokenCreate from '../functions/JWT/refreshTokenCreate';
+import HTTPError from '../exceptions/HTTPError';
 
 // Path: /auth
 const authRouter = express.Router();
@@ -42,6 +43,12 @@ authRouter.post('/login', async (req, res, next) => {
     let user;
     try {
       user = await User.read(dbClient, loginCredentials.username);
+      if (user.status === 'suspended') {
+        throw new HTTPError(400, 'Suspended User');
+      }
+      if (user.status === 'deleted') {
+        throw new AuthenticationError();
+      }
     } catch (e) {
       /* istanbul ignore else */
       if (e.statusCode === 404) {

@@ -127,9 +127,19 @@ export default class User implements LoginCredentials {
     if (queryResult.length !== 1) {
       throw new NotFoundError();
     }
-    const user: User = queryResult[0];
+    const user = new User(
+      queryResult[0].username,
+      queryResult[0].password,
+      new Date(queryResult[0].membersince),
+      queryResult[0].admission_year,
+      queryResult[0].legal_name,
+      queryResult[0].status,
+      queryResult[0].admin,
+      queryResult[0].nickname,
+      queryResult[0].school_company,
+      queryResult[0].major_department
+    );
 
-    user.memberSince = new Date(user.memberSince);
     if (user.nickname === null) {
       user.nickname = undefined;
     }

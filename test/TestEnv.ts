@@ -187,6 +187,8 @@ export default class TestEnv {
       13,
       '홍길동',
       null,
+      null,
+      null,
       'unverified',
       false,
     ]);
@@ -199,10 +201,12 @@ export default class TestEnv {
       1,
       '김철수',
       'Charles Kim',
+      null,
+      null,
       'verified',
       false,
     ]);
-    // admin1, rootPW12!@, 2008 admitted (6), 최영재, Youngjae Choi, verified admin user
+    // admin1, rootPW12!@, 2008 admitted (6), 최영재, Youngjae Choi, Busan Science High School, Student, verified admin user
     userTimestamp = new Date('2021-02-07T01:12:42.000Z');
     userSamples.push([
       'admin1',
@@ -211,29 +215,35 @@ export default class TestEnv {
       6,
       '최영재',
       '나똑똑',
+      'Busan Science High School',
+      'Student',
       'verified',
       true,
     ]);
-    // suspended1, suspenD12@, 2010 admitted (8), 나불법, suspended user
+    // suspended1, snuesDp12@, 2010 admitted (8), 나불법, suspended user
     userTimestamp = new Date('2021-04-07T01:12:42.000Z');
     userSamples.push([
       'suspended1',
-      TestConfig.hash('suspended1', userTimestamp.toISOString(), 'suspenD12@'),
+      TestConfig.hash('suspended1', userTimestamp.toISOString(), 'snuesDp12@@'),
       userTimestamp,
       8,
       '나불법',
       null,
+      null,
+      null,
       'suspended',
       false,
     ]);
-    // deleted1, Del1234@!!, 2014 admitted (12), 김영희, deleted user
+    // deleted1, Dle12!4@!!, 2014 admitted (12), 김영희, deleted user
     userTimestamp = new Date('2021-07-07T01:12:42.000Z');
     userSamples.push([
       'deleted1',
-      TestConfig.hash('deleted1', userTimestamp.toISOString(), 'Del1234@!!'),
+      TestConfig.hash('deleted1', userTimestamp.toISOString(), 'Dle12!4@!!'),
       userTimestamp,
       12,
       '김영희',
+      null,
+      null,
       null,
       'deleted',
       false,
@@ -242,8 +252,8 @@ export default class TestEnv {
     await this.dbClient.batch(
       String.prototype.concat(
         'INSERT INTO user ',
-        '(username, password, membersince, admission_year, legal_name, nickname, status, admin) ',
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        '(username, password, membersince, admission_year, legal_name, nickname, school_company, major_department, status, admin) ',
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       ),
       userSamples
     );
