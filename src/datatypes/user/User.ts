@@ -6,6 +6,7 @@
 
 import * as mariadb from 'mariadb';
 import LoginCredentials from '../authentication/LoginCredentials';
+import NotFoundError from '../../exceptions/NotFoundError';
 import HTTPError from '../../exceptions/HTTPError';
 
 /**
@@ -109,5 +110,36 @@ export default class User implements LoginCredentials {
         throw e;
       }
     }
+  }
+
+  /**
+   * Retrieve an User entry from DB
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @return {Promise<User>} return information of User associated with the username
+   */
+  static async read(dbClient: mariadb.Pool, username: string): Promise<User> {
+    const queryResult = await dbClient.query(
+      'SELECT * FROM user WHERE username = ?',
+      username
+    );
+    if (queryResult.length !== 1) {
+      throw new NotFoundError();
+    }
+    const user: User = queryResult[0];
+
+    user.memberSince = new Date(user.memberSince);
+    if (user.nickname === null) {
+      user.nickname = undefined;
+    }
+    if (user.majorDepartment === null) {
+      user.majorDepartment = undefined;
+    }
+    if (user.schoolCompany === null) {
+      user.schoolCompany = undefined;
+    }
+
+    return user;
   }
 }
