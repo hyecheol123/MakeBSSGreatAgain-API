@@ -11,6 +11,7 @@ import ServerConfig from '../ServerConfig';
 import {validateLoginCredentials} from '../functions/inputValidator/validateLoginCredentials';
 import usernameRule from '../functions/inputValidator/usernameRule';
 import passwordRule from '../functions/inputValidator/passwordRule';
+import HTTPError from '../exceptions/HTTPError';
 import BadRequestError from '../exceptions/BadRequestError';
 import AuthenticationError from '../exceptions/AuthenticationError';
 import LoginCredentials from '../datatypes/authentication/LoginCredentials';
@@ -19,7 +20,6 @@ import accessTokenCreate from '../functions/JWT/accessTokenCreate';
 import refreshTokenCreate from '../functions/JWT/refreshTokenCreate';
 import refreshTokenVerify from '../functions/JWT/refreshTokenVerify';
 import redisDel from '../functions/asyncRedis/redisDel';
-import HTTPError from '../exceptions/HTTPError';
 import redisTtl from '../functions/asyncRedis/redisTtl';
 import redisSetEX from '../functions/asyncRedis/redisSet';
 import redisScan from '../functions/asyncRedis/redisScan';
@@ -180,9 +180,9 @@ authRouter.delete('/logout/other-sessions', async (req, res, next) => {
       redisScan(`*_${verifyResult.content.username}_*`, redisClient),
     ]);
     const tokens = tokenArrays[0];
-    tokenArrays[1].map(token =>
-      tokens.concat(token.substr(token.indexOf('_') + 1))
-    );
+    for (const token of tokenArrays[1]) {
+      tokens.push(token.substr(token.indexOf('_') + 1));
+    }
     await Promise.all(tokens.map(token => redisDel(token, redisClient)));
 
     // Add current token to redis server
