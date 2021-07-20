@@ -313,6 +313,9 @@ authRouter.put('/password', async (req, res, next) => {
     if (!validateChangePasswordForm(form)) {
       throw new BadRequestError();
     }
+    if (form.newPassword === form.currentPassword) {
+      throw new BadRequestError();
+    }
 
     // Check password rule
     if (

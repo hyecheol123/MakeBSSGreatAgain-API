@@ -138,7 +138,7 @@ export default class TestEnv {
         'CREATE TABLE user (',
         'username VARCHAR(12) NOT NULL PRIMARY KEY,',
         'password CHAR(88) NOT NULL,',
-        'membersince TIMESTAMP NOT NULL,',
+        'membersince TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,',
         'admission_year TINYINT(2) NOT NULL,',
         'legal_name VARCHAR(255) NOT NULL,',
         'nickname VARCHAR(255) NULL DEFAULT NULL,',
