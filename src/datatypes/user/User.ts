@@ -152,4 +152,23 @@ export default class User implements LoginCredentials {
 
     return user;
   }
+
+  /**
+   * Update User's Password
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @param hashedPassword new password to be updated (need to be hashed)
+   * @return {Promise<mariadb.UpsertResult>} db operation result
+   */
+  static async updatePassword(
+    dbClient: mariadb.Pool,
+    username: string,
+    hashedPassword: string
+  ): Promise<mariadb.UpsertResult> {
+    return await dbClient.query(
+      'UPDATE user SET password = ? WHERE username = ?;',
+      [hashedPassword, username]
+    );
+  }
 }

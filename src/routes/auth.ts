@@ -9,12 +9,14 @@ import * as redis from 'redis';
 import * as mariadb from 'mariadb';
 import ServerConfig from '../ServerConfig';
 import {validateLoginCredentials} from '../functions/inputValidator/validateLoginCredentials';
+import {validateChangePasswordForm} from '../functions/inputValidator/validateChangePasswordForm';
 import usernameRule from '../functions/inputValidator/usernameRule';
 import passwordRule from '../functions/inputValidator/passwordRule';
 import HTTPError from '../exceptions/HTTPError';
 import BadRequestError from '../exceptions/BadRequestError';
 import AuthenticationError from '../exceptions/AuthenticationError';
 import LoginCredentials from '../datatypes/authentication/LoginCredentials';
+import ChangePasswordForm from '../datatypes/authentication/ChangePassword';
 import User from '../datatypes/user/User';
 import accessTokenCreate from '../functions/JWT/accessTokenCreate';
 import refreshTokenCreate from '../functions/JWT/refreshTokenCreate';
@@ -23,6 +25,45 @@ import redisDel from '../functions/asyncRedis/redisDel';
 import redisTtl from '../functions/asyncRedis/redisTtl';
 import redisSetEX from '../functions/asyncRedis/redisSet';
 import redisScan from '../functions/asyncRedis/redisScan';
+
+/**
+ * Helper method to clear all sessions from redis except for current session
+ *
+ * @param redisClient redis client
+ * @param username unique username associated with the user
+ * @param refreshToken refreshToken associated with the session
+ */
+async function clearAllSessionsExceptCurrent(
+  redisClient: redis.RedisClient,
+  username: string,
+  refreshToken: string
+): Promise<void> {
+  // Retrieve remaining time to expire of current token
+  const remainingTtl = await redisTtl(
+    `${username}_${refreshToken}`,
+    redisClient
+  );
+
+  // Remove tokens from redis server
+  const tokenArrays = await Promise.all([
+    redisScan(`${username}_*`, redisClient),
+    // For test
+    redisScan(`*_${username}_*`, redisClient),
+  ]);
+  const tokens = tokenArrays[0];
+  for (const token of tokenArrays[1]) {
+    tokens.push(token.substr(token.indexOf('_') + 1));
+  }
+  await Promise.all(tokens.map(token => redisDel(token, redisClient)));
+
+  // Add current token to redis server
+  await redisSetEX(
+    `${username}_${refreshToken}`,
+    '',
+    remainingTtl,
+    redisClient
+  );
+}
 
 // Path: /auth
 const authRouter = express.Router();
@@ -167,30 +208,11 @@ authRouter.delete('/logout/other-sessions', async (req, res, next) => {
       res.cookie('X-REFRESH-TOKEN', refreshToken, cookieOption);
     }
 
-    // Retrieve remaining time to expire of current token
-    const remainingTtl = await redisTtl(
-      `${verifyResult.content.username}_${refreshToken}`,
-      redisClient
-    );
-
-    // Remove tokens from redis server
-    const tokenArrays = await Promise.all([
-      redisScan(`${verifyResult.content.username}_*`, redisClient),
-      // For test
-      redisScan(`*_${verifyResult.content.username}_*`, redisClient),
-    ]);
-    const tokens = tokenArrays[0];
-    for (const token of tokenArrays[1]) {
-      tokens.push(token.substr(token.indexOf('_') + 1));
-    }
-    await Promise.all(tokens.map(token => redisDel(token, redisClient)));
-
-    // Add current token to redis server
-    await redisSetEX(
-      `${verifyResult.content.username}_${refreshToken}`,
-      '',
-      remainingTtl,
-      redisClient
+    // Clear all session except for current session
+    await clearAllSessionsExceptCurrent(
+      redisClient,
+      verifyResult.content.username,
+      refreshToken
     );
 
     // response
@@ -262,6 +284,104 @@ authRouter.get('/renew', async (req, res, next) => {
     cookieOption.maxAge = 15 * 60;
     cookieOption.path = '/';
     res.cookie('X-ACCESS-TOKEN', accessToken, cookieOption);
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+});
+
+// PUT: /auth/password
+authRouter.put('/password', async (req, res, next) => {
+  try {
+    const redisClient: redis.RedisClient = req.app.locals.redisClient;
+    const dbClient: mariadb.Pool = req.app.locals.dbClient;
+    let refreshToken = req.cookies['X-REFRESH-TOKEN'];
+
+    // Verify RefreshToken
+    const verifyResult = await refreshTokenVerify(
+      req,
+      req.app.get('jwtRefreshKey'),
+      redisClient
+    );
+    // Refresh Token about to expire (Generated new token)
+    if (verifyResult.newToken !== undefined) {
+      refreshToken = verifyResult.newToken;
+    }
+
+    // Verify User's Input
+    const form: ChangePasswordForm = req.body;
+    if (!validateChangePasswordForm(form)) {
+      throw new BadRequestError();
+    }
+
+    // Check password rule
+    if (
+      !passwordRule(verifyResult.content.username, form.currentPassword) &&
+      !passwordRule(verifyResult.content.username, form.newPassword)
+    ) {
+      throw new BadRequestError();
+    }
+
+    // Retrieve User's Information from DB
+    let user;
+    try {
+      user = await User.read(dbClient, verifyResult.content.username);
+      if (user.status === 'suspended') {
+        throw new HTTPError(400, 'Suspended User');
+      }
+      if (user.status === 'deleted') {
+        throw new AuthenticationError();
+      }
+    } catch (e) {
+      /* istanbul ignore else */
+      if (e.statusCode === 404) {
+        throw new AuthenticationError();
+      } else {
+        throw e;
+      }
+    }
+
+    // Check current password
+    let hashedPassword = ServerConfig.hash(
+      user.username,
+      user.memberSince.toISOString(),
+      form.currentPassword
+    );
+    if (hashedPassword !== user.password) {
+      // Authentication already be done with refreshToken
+      throw new BadRequestError();
+    }
+
+    // Update Password
+    hashedPassword = ServerConfig.hash(
+      user.username,
+      user.memberSince.toISOString(),
+      form.newPassword
+    );
+
+    // DB Update Password
+    await User.updatePassword(dbClient, user.username, hashedPassword);
+
+    // Clear all session except for current session
+    await clearAllSessionsExceptCurrent(
+      redisClient,
+      verifyResult.content.username,
+      refreshToken
+    );
+
+    // Response
+    if (verifyResult.newToken !== undefined) {
+      // Send newly generated refreshToken
+      const cookieOption: express.CookieOptions = {
+        httpOnly: true,
+        maxAge: 120 * 60,
+        secure: true,
+        domain: 'api.bshs.or.kr',
+        path: '/auth',
+        sameSite: 'strict',
+      };
+      res.cookie('X-REFRESH-TOKEN', refreshToken, cookieOption);
+    }
     res.status(200).send();
   } catch (e) {
     next(e);
