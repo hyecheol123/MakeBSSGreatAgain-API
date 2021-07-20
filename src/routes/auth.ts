@@ -200,4 +200,70 @@ authRouter.delete('/logout/other-sessions', async (req, res, next) => {
   }
 });
 
+// GET: /auth/renew
+authRouter.get('/renew', async (req, res, next) => {
+  try {
+    const redisClient: redis.RedisClient = req.app.locals.redisClient;
+    const dbClient: mariadb.Pool = req.app.locals.dbClient;
+    let refreshToken = req.cookies['X-REFRESH-TOKEN'];
+
+    // Verify the refresh Token
+    const verifyResult = await refreshTokenVerify(
+      req,
+      req.app.get('jwtRefreshKey'),
+      redisClient
+    );
+    // Refresh Token about to expire (Generated new token)
+    if (verifyResult.newToken !== undefined) {
+      refreshToken = verifyResult.newToken;
+    }
+
+    // Check user existence
+    let user: User;
+    try {
+      user = await User.read(dbClient, verifyResult.content.username);
+      if (user.status === 'suspended') {
+        throw new HTTPError(400, 'Suspended User');
+      }
+      if (user.status === 'deleted') {
+        throw new AuthenticationError();
+      }
+    } catch (e) {
+      /* istanbul ignore else */
+      if (e.statusCode === 404) {
+        throw new AuthenticationError();
+      } else {
+        throw e;
+      }
+    }
+
+    // Create new Access Token
+    const accessToken = accessTokenCreate(
+      verifyResult.content.username,
+      user.status,
+      user.admin,
+      req.app.get('jwtAccessKey')
+    );
+
+    // Response
+    const cookieOption: express.CookieOptions = {
+      httpOnly: true,
+      maxAge: 120 * 60,
+      secure: true,
+      domain: 'api.bshs.or.kr',
+      path: '/auth',
+      sameSite: 'strict',
+    };
+    if (verifyResult.newToken !== undefined) {
+      res.cookie('X-REFRESH-TOKEN', refreshToken, cookieOption);
+    }
+    cookieOption.maxAge = 15 * 60;
+    cookieOption.path = '/';
+    res.cookie('X-ACCESS-TOKEN', accessToken, cookieOption);
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default authRouter;
