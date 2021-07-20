@@ -319,7 +319,7 @@ authRouter.put('/password', async (req, res, next) => {
 
     // Check password rule
     if (
-      !passwordRule(verifyResult.content.username, form.currentPassword) &&
+      !passwordRule(verifyResult.content.username, form.currentPassword) ||
       !passwordRule(verifyResult.content.username, form.newPassword)
     ) {
       throw new BadRequestError();
