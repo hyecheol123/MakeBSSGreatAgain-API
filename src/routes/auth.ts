@@ -228,6 +228,8 @@ authRouter.get('/renew', async (req, res, next) => {
       if (user.status === 'deleted') {
         throw new AuthenticationError();
       }
+      // When user verified or promoted to admin during the session,
+      // The refresh token will created at that time those actions occur
     } catch (e) {
       /* istanbul ignore else */
       if (e.statusCode === 404) {
