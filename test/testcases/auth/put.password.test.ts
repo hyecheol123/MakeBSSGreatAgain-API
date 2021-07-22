@@ -523,6 +523,24 @@ describe('PUT /auth/password - Change password', () => {
       .send({currentPassword: 'Password13!', newPassword: 'passwordPa!'});
     expect(response.status).toBe(400);
 
+    response = await request(testEnv.expressServer.app)
+      .put('/auth/password')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`])
+      .send({currentPassword: 'Password13!', newPassword: 'UserPassword12!'});
+    expect(response.status).toBe(400);
+
+    response = await request(testEnv.expressServer.app)
+      .put('/auth/password')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`])
+      .send({currentPassword: 'Password13!', newPassword: 'password12!'});
+    expect(response.status).toBe(400);
+
+    response = await request(testEnv.expressServer.app)
+      .put('/auth/password')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`])
+      .send({currentPassword: 'Password13!', newPassword: 'PASSWORD12!'});
+    expect(response.status).toBe(400);
+
     // DB Check
     let queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user WHERE username = 'testuser1'"
