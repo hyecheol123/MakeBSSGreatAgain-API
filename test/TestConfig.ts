@@ -13,12 +13,20 @@ import ServerConfigTemplate from '../src/ServerConfigTemplate';
  * Module contains the configuration
  */
 export default class TestConfig extends ServerConfigTemplate {
+  redisIdentifier: string;
+
   /**
    * Constructor for ServerConfig
    *
    * @param identifier test name / used to identify test cases
    */
   constructor(identifier: string) {
+    const redisIdentifier = crypto
+      .createHash('sha1')
+      .update(identifier)
+      .digest('base64')
+      .substr(0, 10)
+      .replace(/-/g, 'a');
     const config: ConfigObj = {
       db: {
         url: 'localhost',
@@ -32,11 +40,13 @@ export default class TestConfig extends ServerConfigTemplate {
         port: 6379,
         user: '',
         db: 14,
+        prefix: `${redisIdentifier}_`,
       },
       expressPort: 3000,
       jwtKeys: {secretKey: 'keySecret', refreshKey: 'keySecret'},
     };
     super(config);
+    this.redisIdentifier = redisIdentifier;
   }
 
   /**

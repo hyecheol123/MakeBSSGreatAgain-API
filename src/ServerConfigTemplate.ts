@@ -43,6 +43,7 @@ export default abstract class ServerConfigTemplate {
    * @param secretString string to be hashed (password, etc)
    * @returns {string} Hashed Password
    */
+  /* istanbul ignore next */
   static hash(
     id: BinaryLike,
     additionalSalt: BinaryLike,

@@ -6,6 +6,7 @@
 
 import * as jwt from 'jsonwebtoken';
 import * as redis from 'redis';
+import redisSetEX from '../asyncRedis/redisSet';
 import AuthToken from '../../datatypes/authentication/AuthToken';
 
 /**
@@ -20,15 +21,15 @@ import AuthToken from '../../datatypes/authentication/AuthToken';
  * @param admin whether user is admin or not
  * @param jwtRefreshKey jwt Refresh Token Secret
  * @param redisClient redis client
- * @return {string} JWT refresh Token
+ * @return {Promise<string>} JWT refresh Token
  */
-export default function refreshTokenCreate(
+export default async function refreshTokenCreate(
   username: AuthToken['username'],
   status: AuthToken['status'],
   admin: AuthToken['admin'],
   jwtRefreshKey: string,
   redisClient: redis.RedisClient
-): string {
+): Promise<string> {
   const tokenContent: AuthToken = {
     username: username,
     type: 'refresh',
@@ -45,7 +46,7 @@ export default function refreshTokenCreate(
   });
 
   // Redis
-  redisClient.set(`${username}_${refreshToken}`, '', 'EX', 120 * 60);
+  await redisSetEX(`${username}_${refreshToken}`, '', 120 * 60, redisClient);
 
   return refreshToken;
 }

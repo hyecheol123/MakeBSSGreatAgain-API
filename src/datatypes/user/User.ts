@@ -6,6 +6,7 @@
 
 import * as mariadb from 'mariadb';
 import LoginCredentials from '../authentication/LoginCredentials';
+import NotFoundError from '../../exceptions/NotFoundError';
 import HTTPError from '../../exceptions/HTTPError';
 
 /**
@@ -109,5 +110,65 @@ export default class User implements LoginCredentials {
         throw e;
       }
     }
+  }
+
+  /**
+   * Retrieve an User entry from DB
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @return {Promise<User>} return information of User associated with the username
+   */
+  static async read(dbClient: mariadb.Pool, username: string): Promise<User> {
+    const queryResult = await dbClient.query(
+      'SELECT * FROM user WHERE username = ?',
+      username
+    );
+    if (queryResult.length !== 1) {
+      throw new NotFoundError();
+    }
+    const user = new User(
+      queryResult[0].username,
+      queryResult[0].password,
+      new Date(queryResult[0].membersince),
+      queryResult[0].admission_year,
+      queryResult[0].legal_name,
+      queryResult[0].status,
+      queryResult[0].admin,
+      queryResult[0].nickname,
+      queryResult[0].school_company,
+      queryResult[0].major_department
+    );
+
+    if (user.nickname === null) {
+      user.nickname = undefined;
+    }
+    if (user.majorDepartment === null) {
+      user.majorDepartment = undefined;
+    }
+    if (user.schoolCompany === null) {
+      user.schoolCompany = undefined;
+    }
+
+    return user;
+  }
+
+  /**
+   * Update User's Password
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @param hashedPassword new password to be updated (need to be hashed)
+   * @return {Promise<mariadb.UpsertResult>} db operation result
+   */
+  static async updatePassword(
+    dbClient: mariadb.Pool,
+    username: string,
+    hashedPassword: string
+  ): Promise<mariadb.UpsertResult> {
+    return await dbClient.query(
+      'UPDATE user SET password = ? WHERE username = ?;',
+      [hashedPassword, username]
+    );
   }
 }
