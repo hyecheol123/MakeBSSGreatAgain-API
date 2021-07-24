@@ -45,4 +45,29 @@ export default class UserPhoneNumber {
       [phoneNumber.username, phoneNumber.countryCode, phoneNumber.phoneNumber]
     );
   }
+
+  /**
+   * Retrieve an existing user_phone_number entry associated with given username
+   *
+   * @param dbClient DB Connection Pool (MariaDB)
+   * @param username username associated with the user_phone_number entry
+   */
+  static async read(
+    dbClient: mariadb.Pool,
+    username: string
+  ): Promise<UserPhoneNumber | null> {
+    const queryResult = await dbClient.query(
+      'SELECT * FROM user_phone_number WHERE username = ?',
+      username
+    );
+    if (queryResult.length !== 0) {
+      return {
+        username: queryResult[0].username,
+        countryCode: queryResult[0].country_code,
+        phoneNumber: queryResult[0].phone_number,
+      };
+    } else {
+      return null;
+    }
+  }
 }

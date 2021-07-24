@@ -5,6 +5,7 @@
  */
 
 import * as mariadb from 'mariadb';
+import UserEmailResponse from './UserEmailResponse';
 
 /**
  * Class for UserEmail
@@ -53,5 +54,32 @@ export default class UserEmail {
       ),
       [email.username, email.email, email.primaryAddr, email.verified]
     );
+  }
+
+  /**
+   * Retrieve user_email entry
+   *
+   * @param dbClient DB Connection Pool (MariaDB)
+   * @param username username associated with the user_email entries
+   * @return {Promise<UserEmailResponse[]>} Array of UserEmailResponse with email addresses associated with the user
+   */
+  static async read(
+    dbClient: mariadb.Pool,
+    username: string
+  ): Promise<UserEmailResponse[]> {
+    const queryResult = await dbClient.query(
+      'SELECT * FROM user_email WHERE username = ?',
+      username
+    );
+
+    const response: UserEmailResponse[] = [];
+    for (const i of queryResult) {
+      response.push({
+        email: i.email,
+        primaryAddr: i.primary_addr,
+        verified: i.verified,
+      });
+    }
+    return response;
   }
 }
