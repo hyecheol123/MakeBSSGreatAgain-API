@@ -65,7 +65,9 @@ Data Diagram for the database
     FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE,
     email VARCHAR(255) NOT NULL,
     primary_addr BOOLEAN NOT NULL,
-    verified BOOLEAN NOT NULL
+    INDEX index_primary_addr(primary_addr),
+    verified BOOLEAN NOT NULL,
+    INDEX index_verified(verified)
   ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
   ```
 
@@ -75,7 +77,8 @@ Data Diagram for the database
     id VARCHAR(44) NOT NULL PRIMARY KEY,
     email_id INT(11) NOT NULL,
     FOREIGN KEY (email_id) REFERENCES user_email(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    expires TIMESTAMP NOT NULL
+    expires TIMESTAMP NOT NULL,
+    INDEX index_expires(expires)
   ) CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
   ```
 
