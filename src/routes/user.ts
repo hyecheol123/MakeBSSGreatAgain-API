@@ -116,7 +116,7 @@ userRouter.post('/', async (req, res, next) => {
 });
 
 // GET /user/{username}
-userRouter.get(':username', async (req, res, next) => {
+userRouter.get('/:username', async (req, res, next) => {
   try {
     const dbClient = req.app.locals.dbClient;
     const username = req.params.username;

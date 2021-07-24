@@ -127,6 +127,8 @@ export default class User implements LoginCredentials {
     if (queryResult.length !== 1) {
       throw new NotFoundError();
     }
+
+    queryResult[0].admin = queryResult[0].admin === 1;
     const user = new User(
       queryResult[0].username,
       queryResult[0].password,

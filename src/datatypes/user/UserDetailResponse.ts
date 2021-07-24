@@ -17,6 +17,7 @@ import UserEmail from './UserEmail';
 import UserEmailResponse from './UserEmailResponse';
 import UserPhoneNumber from './UserPhoneNumber';
 import NotFoundError from '../../exceptions/NotFoundError';
+import HTTPError from '../../exceptions/HTTPError';
 
 /**
  * Class for UserDetailResponse
@@ -64,18 +65,21 @@ export default class UserDetailResponse {
   ): Promise<UserDetailResponse> {
     const queryResult = await dbClient.query(
       String.prototype.concat(
-        'SELECT * FROM user ',
+        'SELECT user.username, admission_year, legal_name, nickname, school_company, major_department, status, email, primary_addr, verified FROM user ',
         'LEFT JOIN user_email ',
-        'ON user.username = user_email.username',
-        'AND user_email.primary_addr = true,',
-        'AND user_email.verified = true',
-        'WHERE user.username = ?,'
+        'ON user.username = user_email.username ',
+        'AND user_email.primary_addr = true ',
+        'AND user_email.verified = true ',
+        'WHERE user.username = ?'
       ),
       username
     );
 
-    if (queryResult.length !== 1) {
+    if (queryResult.length !== 1 || queryResult[0].status === 'deleted') {
       throw new NotFoundError();
+    }
+    if (queryResult[0].status === 'suspended') {
+      throw new HTTPError(400, 'Suspended User');
     }
 
     // Generate UserDetailResponse Object
@@ -132,6 +136,13 @@ export default class UserDetailResponse {
       UserEmail.read(dbClient, username),
       UserPhoneNumber.read(dbClient, username),
     ]);
+
+    if (queries[0].status === 'deleted') {
+      throw new NotFoundError();
+    }
+    if (queries[0].status === 'suspended') {
+      throw new HTTPError(400, 'Suspended User');
+    }
 
     const response = new UserDetailResponse(
       queries[0].username,

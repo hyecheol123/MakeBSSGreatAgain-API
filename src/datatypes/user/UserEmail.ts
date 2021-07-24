@@ -74,6 +74,9 @@ export default class UserEmail {
 
     const response: UserEmailResponse[] = [];
     for (const i of queryResult) {
+      i.primary_addr = i.primary_addr === 1;
+      i.verified = i.verified === 1;
+
       response.push({
         email: i.email,
         primaryAddr: i.primary_addr,
