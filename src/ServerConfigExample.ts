@@ -36,7 +36,7 @@ export default class ServerConfig extends ServerConfigTemplate {
         db: 15,
       },
       expressPort: 3000,
-      jwtKeys: {secretKey: 'keySecret', refreshKey: 'keySecret'},
+      jwtKeys: {secretKey: 'keySecret', refreshKey: 'keySecretRefresh'},
     };
     super(config);
   }
