@@ -43,7 +43,7 @@ export default class TestConfig extends ServerConfigTemplate {
         prefix: `${redisIdentifier}_`,
       },
       expressPort: 3000,
-      jwtKeys: {secretKey: 'keySecret', refreshKey: 'keySecret'},
+      jwtKeys: {secretKey: 'keySecret', refreshKey: 'keySecretRefresh'},
     };
     super(config);
     this.redisIdentifier = redisIdentifier;

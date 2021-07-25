@@ -15,6 +15,8 @@ import User from '../datatypes/user/User';
 import UserEmail from '../datatypes/user/UserEmail';
 import UserEmailVerifyTicket from '../datatypes/user/UserEmailVerifyTicket';
 import UserPhoneNumber from '../datatypes/user/UserPhoneNumber';
+import accessTokenVerify from '../functions/JWT/accessTokenVerify';
+import UserDetailResponse from '../datatypes/user/UserDetailResponse';
 
 // Path: /user
 const userRouter = express.Router();
@@ -108,6 +110,31 @@ userRouter.post('/', async (req, res, next) => {
 
     // Response
     res.status(200).json({username: user.username});
+  } catch (e) {
+    next(e);
+  }
+});
+
+// GET /user/{username}
+userRouter.get('/:username', async (req, res, next) => {
+  try {
+    const dbClient = req.app.locals.dbClient;
+    const username = req.params.username;
+
+    // Check Access Token
+    const tokenContent = accessTokenVerify(req, req.app.get('jwtAccessKey'));
+
+    let response: UserDetailResponse;
+    if (tokenContent.admin === true || tokenContent.username === username) {
+      // Admin/Owner Request
+      response = await UserDetailResponse.readAdminOwner(dbClient, username);
+    } else {
+      // Non-admin request
+      response = await UserDetailResponse.read(dbClient, username);
+    }
+
+    // Response
+    res.status(200).json(response);
   } catch (e) {
     next(e);
   }

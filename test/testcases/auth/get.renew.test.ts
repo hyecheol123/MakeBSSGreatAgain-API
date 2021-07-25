@@ -154,7 +154,7 @@ describe('GET /auth/renew - renew access/refresh token', () => {
     expect(cookie[0]).toBe('X-REFRESH-TOKEN'); // Check for Refresh Token Name
     let tokenPayload = jwt.verify(
       cookie[1],
-      testEnv.testConfig.jwt.secretKey,
+      testEnv.testConfig.jwt.refreshKey,
       jwtOption
     ) as AuthToken; // Check for AccessToken contents
     expect(tokenPayload.username).toBe('testuser1');

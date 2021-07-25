@@ -246,6 +246,46 @@ describe('DELETE /auth/logout - logout from current session', () => {
     expect(result.length).toBe(1);
   });
 
+  test('Fail - Wrong refreshToken secret key', async () => {
+    // Create RefreshToken
+    const tokenContents = {
+      username: 'testuser1',
+      type: 'undecided',
+      status: 'unverified',
+    };
+    const jwtOption: jwt.SignOptions = {
+      algorithm: 'HS512',
+      expiresIn: '120m',
+    };
+    const refreshToken = jwt.sign(
+      tokenContents,
+      testEnv.testConfig.jwt.refreshKey,
+      jwtOption
+    );
+
+    // Login Request
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
+
+    // Logout Request
+    response = await request(testEnv.expressServer.app)
+      .delete('/auth/logout')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`]);
+    expect(response.status).toBe(401);
+
+    // Cookie Clear Check
+    expect(response.header['set-cookie']).toBeUndefined();
+
+    // Check redis server
+    const result = await redisScan(
+      `${testEnv.testConfig.redisIdentifier}_testuser1_*`,
+      testEnv.redisClient
+    );
+    expect(result.length).toBe(1);
+  });
+
   test('Fail - No Token', async () => {
     // Login
     let response = await request(testEnv.expressServer.app)
