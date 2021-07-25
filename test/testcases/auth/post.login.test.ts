@@ -417,6 +417,16 @@ describe('POST /auth/login - login', () => {
     // Check Cookie & token Information
     expect(response.header['set-cookie']).toBeUndefined();
 
+    // request - empty object body
+    response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({});
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Bad Request');
+
+    // Check Cookie & token Information
+    expect(response.header['set-cookie']).toBeUndefined();
+
     // Check redis
     const result = await redisScan(
       `${testEnv.testConfig.redisIdentifier}_testuser1_*`,

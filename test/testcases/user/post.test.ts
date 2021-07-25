@@ -261,6 +261,10 @@ describe('POST /user - create new user', () => {
       .send(newUserForm);
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Bad Request');
+    // Empty object body
+    response = await request(testEnv.expressServer.app).post('/user').send({});
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Bad Request');
 
     // DB Checks
     // user table
