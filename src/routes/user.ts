@@ -7,10 +7,13 @@
 import * as express from 'express';
 import ServerConfig from '../ServerConfig';
 import {validateNewUserForm} from '../functions/inputValidator/validateNewUserForm';
+import {validateChangeUserForm} from '../functions/inputValidator/validateChangeUserForm';
 import usernameRule from '../functions/inputValidator/usernameRule';
 import passwordRule from '../functions/inputValidator/passwordRule';
+import AuthenticationError from '../exceptions/AuthenticationError';
 import BadRequestError from '../exceptions/BadRequestError';
 import NewUserForm from '../datatypes/user/NewUserForm';
+import ChangeUserForm from '../datatypes/user/ChangeUserForm';
 import User from '../datatypes/user/User';
 import UserEmail from '../datatypes/user/UserEmail';
 import UserEmailVerifyTicket from '../datatypes/user/UserEmailVerifyTicket';
@@ -135,6 +138,34 @@ userRouter.get('/:username', async (req, res, next) => {
 
     // Response
     res.status(200).json(response);
+  } catch (e) {
+    next(e);
+  }
+});
+
+// PUT /user/{username}
+userRouter.put('/:username', async (req, res, next) => {
+  try {
+    const dbClient = req.app.locals.dbClient;
+    const username = req.params.username;
+
+    // Check Access Token
+    const tokenContent = accessTokenVerify(req, req.app.get('jwtAccessKey'));
+    if (tokenContent.admin === true || tokenContent.username === username) {
+      throw new AuthenticationError();
+    }
+
+    // Validate User's Input (Ajv)
+    const changeRequest: ChangeUserForm = req.body;
+    if (
+      !validateChangeUserForm(changeRequest) ||
+      Object.keys(changeRequest).length === 0
+    ) {
+      throw new BadRequestError();
+    }
+
+    // TODO: DB Ops
+    // TODO: Response
   } catch (e) {
     next(e);
   }
