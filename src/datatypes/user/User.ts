@@ -173,4 +173,29 @@ export default class User implements LoginCredentials {
       [hashedPassword, username]
     );
   }
+	
+  /**
+   * Update User's Nickname
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @param nickname new nickname to be updated
+   * @return {Promise<mariadb.UpsertResult>} db operation result
+   */
+
+  static async updateNickname(
+    dbClient: mariadb.Pool,
+    username: string,
+    nickname: string
+  ): Promise<mariadb.UpsertResult> {
+	try {
+		return await dbClient.query(
+      'UPDATE user SET nickname = ? WHERE username = ? AND (status = ? OR status = ?);',
+      [nickname, username, 'verified', 'unverified']
+    );
+	}  catch (e) {
+      /* istanbul ignore else */
+    	throw e;
+    }
+  }
 }
