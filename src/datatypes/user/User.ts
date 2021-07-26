@@ -180,22 +180,48 @@ export default class User implements LoginCredentials {
    * @param dbClient DB Connection Pool
    * @param username username associated with the User
    * @param nickname new nickname to be updated
-   * @return {Promise<mariadb.UpsertResult>} db operation result
    */
-
+	
   static async updateNickname(
     dbClient: mariadb.Pool,
     username: string,
     nickname: string
-  ): Promise<mariadb.UpsertResult> {
-	try {
-		return await dbClient.query(
-      'UPDATE user SET nickname = ? WHERE username = ? AND (status = ? OR status = ?);',
-      [nickname, username, 'verified', 'unverified']
+  ): Promise<void> {
+	const queryResult = await dbClient.query(
+      'UPDATE user SET nickname = ? WHERE username = ? AND (status = "verified" OR status = "unverified");',
+      [nickname, username]
     );
-	}  catch (e) {
-      /* istanbul ignore else */
-    	throw e;
+		
+	if (queryResult.affectedRows !== 1) {
+      throw new NotFoundError();
     }
   }
+	
+  /**
+   * Update User's Affiliation
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @param schoolCompany new school/company info to be updated
+   * @param majorDepartment new major/department info to be updated
+   */
+	
+  static async updateAffiliation(
+    dbClient: mariadb.Pool,
+    username: string,
+    schoolCompany: string,
+	majorDepartment: string
+  ): Promise<void> {
+	const queryResult = await dbClient.query(
+      'UPDATE user SET school_company = ?, major_department = ? WHERE username = ? AND (status = "verified" OR status = "unverified");',
+      [schoolCompany, majorDepartment, username]
+    );
+		
+	if (queryResult.affectedRows !== 1) {
+      throw new NotFoundError();
+    }
+		
+	return queryResult;
+  }
+	
 }
