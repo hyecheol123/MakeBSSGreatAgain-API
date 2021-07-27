@@ -220,8 +220,5 @@ export default class User implements LoginCredentials {
 	if (queryResult.affectedRows !== 1) {
       throw new NotFoundError();
     }
-		
-	return queryResult;
   }
-	
 }

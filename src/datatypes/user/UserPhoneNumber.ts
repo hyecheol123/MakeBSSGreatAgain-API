@@ -94,8 +94,5 @@ export default class UserPhoneNumber {
 	if (queryResult.affectedRows !== 1) {
       throw new NotFoundError();
     }
-		
-	return queryResult;
   }
-	
 }
