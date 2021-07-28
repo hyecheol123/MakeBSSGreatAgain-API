@@ -85,4 +85,84 @@ export default class UserEmail {
     }
     return response;
   }
+	
+  /**
+   * Update User's email
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @param email new email info to be updated
+   * @param requestType determine update between delete and add
+   */
+	
+  static async updateEmail(
+    dbClient: mariadb.Pool,
+    username: string,
+    email: string,
+	requestType: string
+  ): Promise<void> {
+	if (requestType === 'delete') {
+	  const primaryCheck = await dbClient.query(
+	    'SELECT * FROM user_email WHERE username = ? AND email = ? AND primary_addr = ?',
+	    [username, email, 'false']
+	  ); // check whether email is primary one or not
+	  if (primaryCheck.length !== 1) {
+	    throw new BadRequestError();
+	  }
+	  else {
+	    const queryResult = await dbClient.query(
+	      'DELETE FROM user_email WHERE username = ? AND email = ?',
+		  [username, email]
+		);
+		if (queryResult.affectedRows !== 1) {
+    	  throw new NotFoundError();
+    	}
+	  }
+	}
+	else if (requestType === 'add') {
+	  const dubplicationCheck = await dbClient.query(
+	    'SELECT * FROM user_email WHERE email = ?',
+	    email
+	  ); // check whether there are dubplicated email or not
+	  if (dubplicationCheck.length !== 0) {
+	    throw new BadRequestError();
+	  }
+	  else {
+		try { // from here, same as Create function in User.ts
+		  // create new UserEmail
+		  const userEmail = new UserEmail(
+		    username,
+		    email,
+		    false,
+		    false
+		  );
+		  const userEmailDBOps = UserEmail.create(dbClient, userEmail);
+		  
+		  // UserEmailVerify
+    	  const emailId = (await userEmailDBOps).insertId;
+    	  const emailVerifyTicketExpire = new Date(memberSince.toISOString());
+    emailVerifyTicketExpire.setDate(emailVerifyTicketExpire.getDate() + 3);
+    	  const userEmailVerifyTicket = new UserEmailVerifyTicket(
+      	    emailId,
+      	    emailVerifyTicketExpire
+    	  );
+    	  const userEmailVerifyTicketDBOps = UserEmailVerifyTicket.create(
+      	    dbClient,
+      	    userEmailVerifyTicket
+    	  );
+		  // TODO: Send Email Verify Notice (AWS Lambda + SES)
+		  // Resolve Promises (DB Ops)
+		  await Promise(userEmailVerifyTicketDBOps);
+		  
+		  // Response
+		  //res.status(200).json({username: username});
+		} catch (e) {
+		  //next(e);
+		}
+	  }	
+	}
+	else {
+		throw new BadRequestError();
+	}
+  }
 }
