@@ -38,6 +38,7 @@ export default class UserEmail {
 
   /**
    * Create new entry in user_email table
+   * Ignore for already existing emails
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param email UserEmail Information
@@ -49,7 +50,7 @@ export default class UserEmail {
   ): Promise<mariadb.UpsertResult> {
     return await dbClient.query(
       String.prototype.concat(
-        'INSERT INTO user_email ',
+        'INSERT IGNORE INTO user_email ',
         '(username, email, primary_addr, verified) VALUES (?, ?, ?, ?)'
       ),
       [email.username, email.email, email.primaryAddr, email.verified]
