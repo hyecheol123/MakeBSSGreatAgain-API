@@ -6,6 +6,7 @@
 
 import * as mariadb from 'mariadb';
 import UserEmailResponse from './UserEmailResponse';
+import NotFoundError from '../../exceptions/NotFoundError';
 
 /**
  * Class for UserEmail
@@ -38,7 +39,6 @@ export default class UserEmail {
 
   /**
    * Create new entry in user_email table
-   * Ignore for already existing emails
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param email UserEmail Information
@@ -50,7 +50,7 @@ export default class UserEmail {
   ): Promise<mariadb.UpsertResult> {
     return await dbClient.query(
       String.prototype.concat(
-        'INSERT IGNORE INTO user_email ',
+        'INSERT INTO user_email ',
         '(username, email, primary_addr, verified) VALUES (?, ?, ?, ?)'
       ),
       [email.username, email.email, email.primaryAddr, email.verified]
@@ -89,20 +89,24 @@ export default class UserEmail {
 
   /**
    * Delete an user_email entry
+   * Only able to delete non-primary address
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param username username associated with the user_email entries
    * @param email email of username which associated with the user_email entries
-   * @return {Promise<UserEmailResponse[]>} db operation result
    */
   static async delete(
     dbClient: mariadb.Pool,
     username: string,
     email: string
-  ): Promise<mariadb.UpsertResult> {
-    return await dbClient.query(
-      'DELETE FROM user_email WHERE username = ?, email = ?',
+  ): Promise<void> {
+    const queryResult = await dbClient.query(
+      'DELETE FROM user_email WHERE username = ?, email = ?, primaryAddr = 0',
       [username, email]
     );
+
+    if (queryResult.affectedRows !== 1) {
+      throw new NotFoundError();
+    }
   }
 }

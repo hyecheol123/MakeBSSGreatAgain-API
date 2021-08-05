@@ -170,7 +170,7 @@ userRouter.put('/:username', async (req, res, next) => {
 
     // Check Access Token
     const tokenContent = accessTokenVerify(req, req.app.get('jwtAccessKey'));
-    if (tokenContent.admin === true || tokenContent.username === username) {
+    if (tokenContent.admin !== true && tokenContent.username !== username) {
       throw new AuthenticationError();
     }
 
@@ -209,12 +209,10 @@ userRouter.put('/:username', async (req, res, next) => {
         changeRequest.phoneNumber.countryCode,
         changeRequest.phoneNumber.phoneNumber
       );
-      if (changeRequest.phoneNumber.opsType === 'create') {
-        dbOps.push(UserPhoneNumber.create(dbClient, userPhoneNumber));
-      } else if (changeRequest.phoneNumber.opsType === 'update') {
+      if ((await UserPhoneNumber.read(dbClient, username)) !== null) {
         dbOps.push(UserPhoneNumber.update(dbClient, userPhoneNumber));
       } else {
-        throw new BadRequestError();
+        dbOps.push(UserPhoneNumber.create(dbClient, userPhoneNumber));
       }
     }
     // email Change requests
