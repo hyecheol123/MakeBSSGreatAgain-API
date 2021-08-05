@@ -37,7 +37,7 @@ export const validateChangeUserForm = addFormats(new Ajv()).compile({
         type: 'object',
         properties: {
           email: {type: 'string', format: 'email'},
-          requestType: {type: 'string', format: '^(delete|add)$'},
+          requestType: {type: 'string', pattern: '^(delete|add)$'},
         },
         required: ['email', 'requestType'],
         additionalProperties: false,

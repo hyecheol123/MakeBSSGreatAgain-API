@@ -166,9 +166,7 @@ userRouter.put('/:username', async (req, res, next) => {
 
     // TODO: DB Ops
 
-	  
     // TODO: Response
-	res.status(200).json(response);
   } catch (e) {
     next(e);
   }
