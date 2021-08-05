@@ -16,6 +16,7 @@ export const validateChangeUserForm = addFormats(new Ajv()).compile({
       properties: {
         countryCode: {type: 'number'},
         phoneNumber: {type: 'number'},
+        opsType: {type: 'string', pattern: '^(update|create)$'},
       },
       required: ['countryCode', 'phoneNumber'],
       additionalProperties: false,

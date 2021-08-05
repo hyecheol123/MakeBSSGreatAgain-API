@@ -76,15 +76,11 @@ export default class UserPhoneNumber {
    * Update User's PhoneNumber
    *
    * @param dbClient DB Connection Pool
-   * @param username username associated with the User
-   * @param countryCode new countryCode to be updated
-   * @param phoneNumber new phoneNumber to be updated
+   * @param phoneNumber UserPhoneNumber Information
    */
   static async update(
     dbClient: mariadb.Pool,
-    username: string,
-    countryCode: number,
-    phoneNumber: number
+    phoneNumber: UserPhoneNumber
   ): Promise<void> {
     const queryResult = await dbClient.query(
       String.prototype.concat(
@@ -94,7 +90,7 @@ export default class UserPhoneNumber {
         'AND (U.status = "verified" OR U.status = "unverified") ',
         'SET UPN.country_code = ?, UPN.phone_number = ?;'
       ),
-      [username, countryCode, phoneNumber]
+      [phoneNumber.username, phoneNumber.countryCode, phoneNumber.phoneNumber]
     );
 
     if (queryResult.affectedRows !== 1) {
