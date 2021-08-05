@@ -5,6 +5,7 @@
  */
 
 import * as mariadb from 'mariadb';
+import NotFoundError from '../../exceptions/NotFoundError';
 
 /**
  * Class for UserPhoneNumber
@@ -70,7 +71,7 @@ export default class UserPhoneNumber {
       return null;
     }
   }
-	
+
   /**
    * Update User's PhoneNumber
    *
@@ -79,19 +80,19 @@ export default class UserPhoneNumber {
    * @param countryCode new countryCode to be updated
    * @param phoneNumber new phoneNumber to be updated
    */
-	
   static async updatePhoneNumber(
     dbClient: mariadb.Pool,
     username: string,
     countryCode: number,
-	phoneNumber: number
+    phoneNumber: number
   ): Promise<void> {
-	const queryResult = await dbClient.query(
-      'UPDATE user_phone_number as UPN INNNER JOIN user as U ON UPN.username = U.username SET UPN.country_code = ?, UPN.phone_number = ? WHERE UPN.username = ? AND (U.status = "verified" OR U.status = "unverified");',
+    // TODO: Modify Query
+    const queryResult = await dbClient.query(
+      'UPDATE user_phone_number as UPN INNER JOIN user as U ON UPN.username = U.username SET UPN.country_code = ?, UPN.phone_number = ? WHERE UPN.username = ? AND (U.status = "verified" OR U.status = "unverified");',
       [countryCode, phoneNumber, username]
     );
-		
-	if (queryResult.affectedRows !== 1) {
+
+    if (queryResult.affectedRows !== 1) {
       throw new NotFoundError();
     }
   }

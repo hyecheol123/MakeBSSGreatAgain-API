@@ -2,6 +2,7 @@
  * Define type and CRUD methods for each user entry
  *
  * @author Hyecheol (Jerry) Jang <hyecheol123@gmail.com>
+ * @author Do-Hoon Kim <k99hoon@gmail.com>
  */
 
 import * as mariadb from 'mariadb';
@@ -173,7 +174,7 @@ export default class User implements LoginCredentials {
       [hashedPassword, username]
     );
   }
-	
+
   /**
    * Update User's Nickname
    *
@@ -181,22 +182,24 @@ export default class User implements LoginCredentials {
    * @param username username associated with the User
    * @param nickname new nickname to be updated
    */
-	
   static async updateNickname(
     dbClient: mariadb.Pool,
     username: string,
     nickname: string
   ): Promise<void> {
-	const queryResult = await dbClient.query(
-      'UPDATE user SET nickname = ? WHERE username = ? AND (status = "verified" OR status = "unverified");',
+    const queryResult = await dbClient.query(
+      String.prototype.concat(
+        'UPDATE user SET nickname = ? ',
+        'WHERE username = ? AND (status = "verified" OR status = "unverified");'
+      ),
       [nickname, username]
     );
-		
-	if (queryResult.affectedRows !== 1) {
+
+    if (queryResult.affectedRows !== 1) {
       throw new NotFoundError();
     }
   }
-	
+
   /**
    * Update User's Affiliation
    *
@@ -205,19 +208,21 @@ export default class User implements LoginCredentials {
    * @param schoolCompany new school/company info to be updated
    * @param majorDepartment new major/department info to be updated
    */
-	
   static async updateAffiliation(
     dbClient: mariadb.Pool,
     username: string,
     schoolCompany: string,
-	majorDepartment: string
+    majorDepartment: string
   ): Promise<void> {
-	const queryResult = await dbClient.query(
-      'UPDATE user SET school_company = ?, major_department = ? WHERE username = ? AND (status = "verified" OR status = "unverified");',
+    const queryResult = await dbClient.query(
+      String.prototype.concat(
+        'UPDATE user SET school_company = ?, major_department = ? ',
+        'WHERE username = ? AND (status = "verified" OR status = "unverified");'
+      ),
       [schoolCompany, majorDepartment, username]
     );
-		
-	if (queryResult.affectedRows !== 1) {
+
+    if (queryResult.affectedRows !== 1) {
       throw new NotFoundError();
     }
   }
