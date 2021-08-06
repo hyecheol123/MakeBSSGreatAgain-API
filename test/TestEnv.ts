@@ -158,6 +158,8 @@ export default class TestEnv {
           'username VARCHAR(12) NOT NULL,',
           'FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE,',
           'email VARCHAR(255) NOT NULL,',
+          'UNIQUE INDEX username_email (username, email),',
+          'INDEX index_email(email),',
           'primary_addr BOOLEAN NOT NULL,',
           'INDEX index_primary_addr(primary_addr),',
           'verified BOOLEAN NOT NULL,',

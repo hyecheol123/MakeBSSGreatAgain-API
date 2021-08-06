@@ -5,18 +5,55 @@
  */
 
 import * as express from 'express';
+import * as mariadb from 'mariadb';
 import ServerConfig from '../ServerConfig';
 import {validateNewUserForm} from '../functions/inputValidator/validateNewUserForm';
+import {validateChangeUserForm} from '../functions/inputValidator/validateChangeUserForm';
 import usernameRule from '../functions/inputValidator/usernameRule';
 import passwordRule from '../functions/inputValidator/passwordRule';
+import accessTokenVerify from '../functions/JWT/accessTokenVerify';
+import AuthenticationError from '../exceptions/AuthenticationError';
 import BadRequestError from '../exceptions/BadRequestError';
+import HTTPError from '../exceptions/HTTPError';
+import NotFoundError from '../exceptions/NotFoundError';
 import NewUserForm from '../datatypes/user/NewUserForm';
+import ChangeUserForm from '../datatypes/user/ChangeUserForm';
 import User from '../datatypes/user/User';
 import UserEmail from '../datatypes/user/UserEmail';
 import UserEmailVerifyTicket from '../datatypes/user/UserEmailVerifyTicket';
 import UserPhoneNumber from '../datatypes/user/UserPhoneNumber';
-import accessTokenVerify from '../functions/JWT/accessTokenVerify';
 import UserDetailResponse from '../datatypes/user/UserDetailResponse';
+
+/**
+ * Helper function to add new email and send verify ticket to the email
+ *
+ * @param dbClient DB Connection Pool (MariaDB)
+ * @param userEmail UserEmail Information
+ * @return {Promise<mariadb.UpsertResult>} UserEmailVerifyTicket DB Ops result
+ */
+async function addNewEmail(
+  dbClient: mariadb.Pool,
+  userEmail: UserEmail
+): Promise<mariadb.UpsertResult> {
+  const userEmailDBOps = await UserEmail.create(dbClient, userEmail);
+
+  // UserEmailVerify
+  const emailId = userEmailDBOps.insertId;
+  const emailVerifyTicketExpire = new Date();
+  emailVerifyTicketExpire.setDate(emailVerifyTicketExpire.getDate() + 3);
+  const userEmailVerifyTicket = new UserEmailVerifyTicket(
+    emailId,
+    emailVerifyTicketExpire
+  );
+  const userEmailVerifyTicketDBOps = await UserEmailVerifyTicket.create(
+    dbClient,
+    userEmailVerifyTicket
+  );
+
+  // TODO: Send Email Verify Notice (AWS Lambda + SES)
+
+  return Promise.resolve(userEmailVerifyTicketDBOps);
+}
 
 // Path: /user
 const userRouter = express.Router();
@@ -70,15 +107,6 @@ userRouter.post('/', async (req, res, next) => {
     }
     await User.create(dbClient, user);
 
-    // UserEmail
-    const userEmail = new UserEmail(
-      user.username,
-      newUserForm.email,
-      true,
-      false
-    );
-    const userEmailDBOps = UserEmail.create(dbClient, userEmail);
-
     // UserPhoneNumber
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let userPhoneNumberDBOps: Promise<any> = Promise.resolve();
@@ -88,25 +116,23 @@ userRouter.post('/', async (req, res, next) => {
         newUserForm.phoneNumber.countryCode,
         newUserForm.phoneNumber.phoneNumber
       );
-      userPhoneNumberDBOps = UserPhoneNumber.create(dbClient, userPhoneNumber);
+      userPhoneNumberDBOps = UserPhoneNumber.createUpdate(
+        dbClient,
+        userPhoneNumber
+      );
     }
 
-    // UserEmailVerify
-    const emailId = (await userEmailDBOps).insertId;
-    const emailVerifyTicketExpire = new Date(memberSince.toISOString());
-    emailVerifyTicketExpire.setDate(emailVerifyTicketExpire.getDate() + 3);
-    const userEmailVerifyTicket = new UserEmailVerifyTicket(
-      emailId,
-      emailVerifyTicketExpire
+    // UserEmail & Verify Ticket
+    const userEmail = new UserEmail(
+      user.username,
+      newUserForm.email,
+      true,
+      false
     );
-    const userEmailVerifyTicketDBOps = UserEmailVerifyTicket.create(
-      dbClient,
-      userEmailVerifyTicket
-    );
-    // TODO: Send Email Verify Notice (AWS Lambda + SES)
+    const emailDBOps = addNewEmail(dbClient, userEmail);
 
     // Resolve Promises (DB Ops)
-    await Promise.all([userPhoneNumberDBOps, userEmailVerifyTicketDBOps]);
+    await Promise.all([userPhoneNumberDBOps, emailDBOps]);
 
     // Response
     res.status(200).json({username: user.username});
@@ -135,6 +161,111 @@ userRouter.get('/:username', async (req, res, next) => {
 
     // Response
     res.status(200).json(response);
+  } catch (e) {
+    next(e);
+  }
+});
+
+// PUT /user/{username}
+userRouter.put('/:username', async (req, res, next) => {
+  try {
+    const dbClient = req.app.locals.dbClient;
+    const username = req.params.username;
+
+    // Check Access Token
+    const tokenContent = accessTokenVerify(req, req.app.get('jwtAccessKey'));
+    if (tokenContent.admin !== true && tokenContent.username !== username) {
+      throw new AuthenticationError();
+    }
+
+    // Validate User's Input (Ajv)
+    const changeRequest: ChangeUserForm = req.body;
+    if (
+      !validateChangeUserForm(changeRequest) ||
+      Object.keys(changeRequest).length === 0
+    ) {
+      throw new BadRequestError();
+    }
+
+    // Check whether user has been suspended or not
+    const targetUser = await User.read(dbClient, username);
+    if (targetUser.status === 'suspended') {
+      throw new HTTPError(400, 'Suspended User');
+    } else if (targetUser.status === 'deleted') {
+      throw new NotFoundError();
+    }
+    const updateUser = await User.read(dbClient, tokenContent.username);
+    if (updateUser.status === 'suspended' || updateUser.status === 'deleted') {
+      throw new AuthenticationError();
+    }
+
+    // DB Ops
+    const dbOps = [];
+    // nickname update
+    if (changeRequest.nickname !== undefined) {
+      dbOps.push(
+        User.updateNickname(dbClient, username, changeRequest.nickname)
+      );
+    }
+    // affiliation update
+    if (changeRequest.affiliation !== undefined) {
+      dbOps.push(
+        User.updateAffiliation(
+          dbClient,
+          username,
+          changeRequest.affiliation.schoolCompany,
+          changeRequest.affiliation.majorDepartment
+        )
+      );
+    }
+    // phoneNumber update / create
+    if (changeRequest.phoneNumber !== undefined) {
+      const userPhoneNumber = new UserPhoneNumber(
+        username,
+        changeRequest.phoneNumber.countryCode,
+        changeRequest.phoneNumber.phoneNumber
+      );
+      dbOps.push(UserPhoneNumber.createUpdate(dbClient, userPhoneNumber));
+    }
+    // email Change requests
+    let emailOps;
+    if (changeRequest.emailChange !== undefined) {
+      emailOps = changeRequest.emailChange.map(emailChangeReq => {
+        // request method filtered with Ajv
+        if (emailChangeReq.requestType === 'delete') {
+          return UserEmail.delete(dbClient, username, emailChangeReq.email);
+        } else {
+          const userEmail = new UserEmail(
+            username,
+            emailChangeReq.email,
+            false,
+            false
+          );
+          return addNewEmail(dbClient, userEmail);
+        }
+      });
+    }
+
+    // Await for Async Operations
+    let errorFlag = false;
+    if (emailOps !== undefined) {
+      const opsResults = await Promise.allSettled(emailOps).then();
+      opsResults.some(result => {
+        if (result.status === 'rejected') errorFlag = true;
+      });
+    }
+    const opsResults = await Promise.allSettled(dbOps);
+    opsResults.some(result => {
+      // This part of code should not be triggered
+      /* istanbul ignore if */
+      if (result.status === 'rejected') errorFlag = true;
+    });
+
+    if (errorFlag) {
+      res.status(200).json({message: 'Partially processed'});
+    } else {
+      res.status(200).send();
+    }
   } catch (e) {
     next(e);
   }

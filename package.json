@@ -28,7 +28,7 @@
     }
   },
   "scripts": {
-    "test": "jest --coverage --runInBand --detectOpenHandles --forceExit --errorOnDeprecated --logHeapUsage",
+    "test": "jest --coverage --detectOpenHandles --forceExit --errorOnDeprecated",
     "lint": "gts lint",
     "lint:fix": "gts fix",
     "build": "tsc",
@@ -37,6 +37,9 @@
     "prestart": "npm run build",
     "pretest": "npm run build",
     "posttest": "npm run lint"
+  },
+  "engines": {
+    "node": ">=12.9.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",

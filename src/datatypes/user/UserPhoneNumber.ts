@@ -29,20 +29,28 @@ export default class UserPhoneNumber {
 
   /**
    * Create new entry in phone_number table
+   * - When duplicated username found, update the content
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param phoneNumber UserPhoneNumber Information
    */
-  static async create(
+  static async createUpdate(
     dbClient: mariadb.Pool,
     phoneNumber: UserPhoneNumber
   ): Promise<void> {
     await dbClient.query(
       String.prototype.concat(
         'INSERT INTO user_phone_number ',
-        '(username, country_code, phone_number) VALUES (?, ?, ?)'
+        '(username, country_code, phone_number) VALUES (?, ?, ?) ',
+        'ON DUPLICATE KEY UPDATE country_code = ?, phone_number = ?'
       ),
-      [phoneNumber.username, phoneNumber.countryCode, phoneNumber.phoneNumber]
+      [
+        phoneNumber.username,
+        phoneNumber.countryCode,
+        phoneNumber.phoneNumber,
+        phoneNumber.countryCode,
+        phoneNumber.phoneNumber,
+      ]
     );
   }
 

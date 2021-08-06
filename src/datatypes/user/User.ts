@@ -2,6 +2,7 @@
  * Define type and CRUD methods for each user entry
  *
  * @author Hyecheol (Jerry) Jang <hyecheol123@gmail.com>
+ * @author Do-Hoon Kim <k99hoon@gmail.com>
  */
 
 import * as mariadb from 'mariadb';
@@ -172,5 +173,53 @@ export default class User implements LoginCredentials {
       'UPDATE user SET password = ? WHERE username = ?;',
       [hashedPassword, username]
     );
+  }
+
+  /**
+   * Update User's Nickname
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @param nickname new nickname to be updated
+   */
+  static async updateNickname(
+    dbClient: mariadb.Pool,
+    username: string,
+    nickname: string
+  ): Promise<void> {
+    const queryResult = await dbClient.query(
+      'UPDATE user SET nickname = ? WHERE username = ?;',
+      [nickname, username]
+    );
+
+    /* istanbul ignore if */
+    if (queryResult.affectedRows !== 1) {
+      throw new NotFoundError();
+    }
+  }
+
+  /**
+   * Update User's Affiliation
+   *
+   * @param dbClient DB Connection Pool
+   * @param username username associated with the User
+   * @param schoolCompany new school/company info to be updated
+   * @param majorDepartment new major/department info to be updated
+   */
+  static async updateAffiliation(
+    dbClient: mariadb.Pool,
+    username: string,
+    schoolCompany: string,
+    majorDepartment: string
+  ): Promise<void> {
+    const queryResult = await dbClient.query(
+      'UPDATE user SET school_company = ?, major_department = ? WHERE username = ?;',
+      [schoolCompany, majorDepartment, username]
+    );
+
+    /* istanbul ignore if */
+    if (queryResult.affectedRows !== 1) {
+      throw new NotFoundError();
+    }
   }
 }

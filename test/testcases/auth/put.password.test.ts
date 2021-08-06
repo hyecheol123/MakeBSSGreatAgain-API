@@ -374,6 +374,13 @@ describe('PUT /auth/password - Change password', () => {
       .send({currentPassword: 'Password13!'});
     expect(response.status).toBe(400);
 
+    // Password Change request
+    response = await request(testEnv.expressServer.app)
+      .put('/auth/password')
+      .set('Cookie', [`X-REFRESH-TOKEN=${refreshToken}`])
+      .send({});
+    expect(response.status).toBe(400);
+
     // DB Check
     const queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user WHERE username = 'testuser1'"

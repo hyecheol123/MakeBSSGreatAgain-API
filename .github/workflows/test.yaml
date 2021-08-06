@@ -20,9 +20,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ubuntu-20.04
         node_version:
-          - 12
           - 14
           - 16
         architecture:
@@ -61,7 +59,7 @@ jobs:
       
       # Install Dependencies
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
       
       # Create ServerConfig.ts
       - run: |
@@ -69,4 +67,4 @@ jobs:
       
       # Run Test
       - name: Run Test
-        run: npm run test
+        run: npm test

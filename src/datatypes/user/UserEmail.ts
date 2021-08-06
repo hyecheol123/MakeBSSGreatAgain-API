@@ -6,6 +6,7 @@
 
 import * as mariadb from 'mariadb';
 import UserEmailResponse from './UserEmailResponse';
+import NotFoundError from '../../exceptions/NotFoundError';
 
 /**
  * Class for UserEmail
@@ -84,5 +85,28 @@ export default class UserEmail {
       });
     }
     return response;
+  }
+
+  /**
+   * Delete an user_email entry
+   * Only able to delete non-primary address
+   *
+   * @param dbClient DB Connection Pool (MariaDB)
+   * @param username username associated with the user_email entries
+   * @param email email of username which associated with the user_email entries
+   */
+  static async delete(
+    dbClient: mariadb.Pool,
+    username: string,
+    email: string
+  ): Promise<void> {
+    const queryResult = await dbClient.query(
+      'DELETE FROM user_email WHERE username = ? AND email = ? AND primary_addr = 0;',
+      [username, email]
+    );
+
+    if (queryResult.affectedRows !== 1) {
+      throw new NotFoundError();
+    }
   }
 }
