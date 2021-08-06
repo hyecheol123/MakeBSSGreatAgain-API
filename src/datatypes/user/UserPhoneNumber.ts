@@ -29,7 +29,7 @@ export default class UserPhoneNumber {
 
   /**
    * Create new entry in phone_number table
-   * - When duplicated username found,update the content
+   * - When duplicated username found, update the content
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param phoneNumber UserPhoneNumber Information
