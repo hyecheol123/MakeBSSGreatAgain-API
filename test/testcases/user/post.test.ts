@@ -146,6 +146,8 @@ describe('POST /user - create new user', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    console.log(expectedExpire.toISOString());
+    console.log(new Date(queryResult[0].expires).toISOString());
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
     // user_phone_number table
     queryResult = await testEnv.dbClient.query(
