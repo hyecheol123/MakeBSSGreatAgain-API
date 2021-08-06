@@ -232,9 +232,10 @@ userRouter.put('/:username', async (req, res, next) => {
     let emailOps;
     if (changeRequest.emailChange !== undefined) {
       emailOps = changeRequest.emailChange.map(emailChangeReq => {
+        // request method filtered with Ajv
         if (emailChangeReq.requestType === 'delete') {
           return UserEmail.delete(dbClient, username, emailChangeReq.email);
-        } else if (emailChangeReq.requestType === 'add') {
+        } else {
           const userEmail = new UserEmail(
             username,
             emailChangeReq.email,
@@ -242,8 +243,6 @@ userRouter.put('/:username', async (req, res, next) => {
             false
           );
           return addNewEmail(dbClient, userEmail);
-        } else {
-          throw new BadRequestError();
         }
       });
     }
@@ -258,6 +257,8 @@ userRouter.put('/:username', async (req, res, next) => {
     }
     const opsResults = await Promise.allSettled(dbOps);
     opsResults.some(result => {
+      // This part of code should not be triggered
+      /* istanbul ignore if */
       if (result.status === 'rejected') errorFlag = true;
     });
 

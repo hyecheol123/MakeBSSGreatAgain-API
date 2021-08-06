@@ -774,13 +774,401 @@ describe('PUT /user/{username} - Update user information', () => {
     expect(queryResult.length).toBe(0);
   });
 
-  // TODO: Fail - Suspended Update User
-  // TODO: Fail - Deleted Update User
-  // TODO: Fail - Not Found (User not in DB)
-  // TODO: Fail - Bad Request (More field)
-  // TODO: Fail - Bad Request (No Field)
-  // TODO: Fail - Bad Request (Unknown email ops value)
-  // TODO: Fail - Authentication Error (Not the owner)
-  // TODO: Fail - Authentication Error (Missing Access Token)
-  // TODO: Fail - Authentication Error (Invalid Access Token)
+  test('Fail - Suspended Update User', async () => {
+    // Login with admin1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'admin1', password: 'rootPW12!@'});
+    expect(response.status).toBe(200);
+    const accessToken = response.header['set-cookie'][0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // User suspended
+    let queryResult = await testEnv.dbClient.query(
+      "UPDATE user SET status = 'suspended' WHERE username='admin1'"
+    );
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'add'}],
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser1')
+      .set('Cookie', [`X-ACCESS-TOKEN=${accessToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe(
+      'Authentication information is missing/invalid'
+    );
+
+    // nickname
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe(null);
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('홍길동');
+
+    // phoneNumber
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(0);
+
+    // email / verify ticket
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('testuser1@gmail.com');
+  });
+
+  test('Fail - Deleted Update User', async () => {
+    // Login with testuser1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'admin1', password: 'rootPW12!@'});
+    expect(response.status).toBe(200);
+    const accessToken = response.header['set-cookie'][0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // User deleted
+    let queryResult = await testEnv.dbClient.query(
+      "UPDATE user SET status = 'deleted' WHERE username='admin1'"
+    );
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'add'}],
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser1')
+      .set('Cookie', [`X-ACCESS-TOKEN=${accessToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe(
+      'Authentication information is missing/invalid'
+    );
+
+    // nickname
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe(null);
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('홍길동');
+
+    // phoneNumber
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(0);
+
+    // email / verify ticket
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('testuser1@gmail.com');
+  });
+
+  test('Fail - Not Found (User not in DB)', async () => {
+    // Login with testuser1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'admin1', password: 'rootPW12!@'});
+    expect(response.status).toBe(200);
+    const accessToken = response.header['set-cookie'][0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'add'}],
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/notindb11')
+      .set('Cookie', [`X-ACCESS-TOKEN=${accessToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('Not Found');
+  });
+
+  test('Fail - Bad Request (More field)', async () => {
+    // Login with admin1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'admin1', password: 'rootPW12!@'});
+    expect(response.status).toBe(200);
+    const accessToken = response.header['set-cookie'][0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'add'}],
+      updated: true,
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser1')
+      .set('Cookie', [`X-ACCESS-TOKEN=${accessToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Bad Request');
+
+    // nickname
+    let queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe(null);
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('홍길동');
+
+    // phoneNumber
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(0);
+
+    // email / verify ticket
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('testuser1@gmail.com');
+  });
+
+  test('Fail - Bad Request (No Field)', async () => {
+    // Login with admin1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'admin1', password: 'rootPW12!@'});
+    expect(response.status).toBe(200);
+    const accessToken = response.header['set-cookie'][0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // Modify user information
+    const changeUserForm = {};
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser1')
+      .set('Cookie', [`X-ACCESS-TOKEN=${accessToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Bad Request');
+
+    // nickname
+    let queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe(null);
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('홍길동');
+
+    // phoneNumber
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(0);
+
+    // email / verify ticket
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('testuser1@gmail.com');
+  });
+
+  test('Fail - Bad Request (Unknown email ops value)', async () => {
+    // Login with admin1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'admin1', password: 'rootPW12!@'});
+    expect(response.status).toBe(200);
+    const accessToken = response.header['set-cookie'][0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'modify'}],
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser1')
+      .set('Cookie', [`X-ACCESS-TOKEN=${accessToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Bad Request');
+
+    // nickname
+    let queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe(null);
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('홍길동');
+
+    // phoneNumber
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_phone_number WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(0);
+
+    // email / verify ticket
+    queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user_email WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].email).toBe('testuser1@gmail.com');
+  });
+
+  test('Fail - Authentication Error (Not the owner)', async () => {
+    // Login with testuser1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
+    const accessToken = response.header['set-cookie'][0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'add'}],
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser2')
+      .set('Cookie', [`X-ACCESS-TOKEN=${accessToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe(
+      'Authentication information is missing/invalid'
+    );
+
+    // nickname
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser2'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe('Charles Kim');
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('김철수');
+  });
+
+  test('Fail - Authentication Error (Missing Access Token)', async () => {
+    // Login with testuser1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'add'}],
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser1')
+      .send(changeUserForm);
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe(
+      'Authentication information is missing/invalid'
+    );
+
+    // nickname
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe(null);
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('홍길동');
+  });
+
+  test('Fail - Authentication Error (Invalid Access Token)', async () => {
+    // Login with testuser1
+    let response = await request(testEnv.expressServer.app)
+      .post('/auth/login')
+      .send({username: 'testuser1', password: 'Password13!'});
+    expect(response.status).toBe(200);
+    const refreshToken = response.header['set-cookie'][1]
+      .split('; ')[0]
+      .split('=')[1];
+
+    // Modify user information
+    const changeUserForm = {
+      nickname: 'Test Nickname',
+      phoneNumber: {countryCode: 82, phoneNumber: 123456789},
+      affiliation: {schoolCompany: 'PNU', majorDepartment: 'Physics'},
+      emailChange: [{email: 'test@test.com', requestType: 'add'}],
+    };
+    response = await request(testEnv.expressServer.app)
+      .put('/user/testuser1')
+      .set('Cookie', [`X-ACCESS-TOKEN=${refreshToken}`])
+      .send(changeUserForm);
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe(
+      'Authentication information is missing/invalid'
+    );
+
+    // nickname
+    const queryResult = await testEnv.dbClient.query(
+      "SELECT * FROM user WHERE username='testuser1'"
+    );
+    expect(queryResult.length).toBe(1);
+    expect(queryResult[0].nickname).toBe(null);
+    // affiliation
+    expect(queryResult[0].school_company).toBe(null);
+    expect(queryResult[0].major_department).toBe(null);
+    // Other field unchanged
+    expect(queryResult[0].legal_name).toBe('홍길동');
+  });
 });

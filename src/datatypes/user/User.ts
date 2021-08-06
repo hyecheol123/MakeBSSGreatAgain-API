@@ -192,6 +192,7 @@ export default class User implements LoginCredentials {
       [nickname, username]
     );
 
+    /* istanbul ignore if */
     if (queryResult.affectedRows !== 1) {
       throw new NotFoundError();
     }
@@ -216,6 +217,7 @@ export default class User implements LoginCredentials {
       [schoolCompany, majorDepartment, username]
     );
 
+    /* istanbul ignore if */
     if (queryResult.affectedRows !== 1) {
       throw new NotFoundError();
     }
