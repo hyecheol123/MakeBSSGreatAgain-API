@@ -105,6 +105,7 @@ describe('PUT /user/{username} - Update user information', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expectedExpire.setMinutes(expectedExpire.getMinutes() + 1);
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
   });
 
@@ -184,6 +185,7 @@ describe('PUT /user/{username} - Update user information', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expectedExpire.setMinutes(expectedExpire.getMinutes() + 1);
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
   });
 
@@ -402,6 +404,7 @@ describe('PUT /user/{username} - Update user information', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expectedExpire.setMinutes(expectedExpire.getMinutes() + 1);
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
   });
 
@@ -661,6 +664,7 @@ describe('PUT /user/{username} - Update user information', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expectedExpire.setMinutes(expectedExpire.getMinutes() + 1);
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
   });
 

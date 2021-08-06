@@ -84,6 +84,7 @@ describe('POST /user - create new user', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expectedExpire.setMinutes(expectedExpire.getMinutes() + 1);
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
     // user_phone_number table
     queryResult = await testEnv.dbClient.query(
@@ -146,6 +147,7 @@ describe('POST /user - create new user', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expectedExpire.setMinutes(expectedExpire.getMinutes() + 1);
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
     // user_phone_number table
     queryResult = await testEnv.dbClient.query(
@@ -213,6 +215,7 @@ describe('POST /user - create new user', () => {
     expectedExpire.setDate(expectedExpire.getDate() + 2);
     expect(new Date(queryResult[0].expires) > expectedExpire).toBe(true);
     expectedExpire.setDate(expectedExpire.getDate() + 1);
+    expectedExpire.setMinutes(expectedExpire.getMinutes() + 1);
     expect(new Date(queryResult[0].expires) < expectedExpire).toBe(true);
     // user_phone_number table
     queryResult = await testEnv.dbClient.query(
