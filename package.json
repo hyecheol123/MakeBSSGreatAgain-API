@@ -28,7 +28,7 @@
     }
   },
   "scripts": {
-    "test": "jest --coverage --detectOpenHandles --forceExit --errorOnDeprecated",
+    "test": "jest --coverage --detectOpenHandles --forceExit --errorOnDeprecated --runInBand",
     "lint": "gts lint",
     "lint:fix": "gts fix",
     "build": "tsc",
