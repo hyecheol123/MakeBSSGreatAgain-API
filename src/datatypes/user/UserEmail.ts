@@ -101,7 +101,7 @@ export default class UserEmail {
     email: string
   ): Promise<void> {
     const queryResult = await dbClient.query(
-      'DELETE FROM user_email WHERE username = ?, email = ?, primaryAddr = 0',
+      'DELETE FROM user_email WHERE username = ? AND email = ? AND primary_addr = 0;',
       [username, email]
     );
 

@@ -188,10 +188,7 @@ export default class User implements LoginCredentials {
     nickname: string
   ): Promise<void> {
     const queryResult = await dbClient.query(
-      String.prototype.concat(
-        'UPDATE user SET nickname = ? ',
-        'WHERE username = ? AND (status = "verified" OR status = "unverified");'
-      ),
+      'UPDATE user SET nickname = ? WHERE username = ?;',
       [nickname, username]
     );
 
@@ -215,10 +212,7 @@ export default class User implements LoginCredentials {
     majorDepartment: string
   ): Promise<void> {
     const queryResult = await dbClient.query(
-      String.prototype.concat(
-        'UPDATE user SET school_company = ?, major_department = ? ',
-        'WHERE username = ? AND (status = "verified" OR status = "unverified");'
-      ),
+      'UPDATE user SET school_company = ?, major_department = ? WHERE username = ?;',
       [schoolCompany, majorDepartment, username]
     );
 

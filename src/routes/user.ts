@@ -14,6 +14,8 @@ import passwordRule from '../functions/inputValidator/passwordRule';
 import accessTokenVerify from '../functions/JWT/accessTokenVerify';
 import AuthenticationError from '../exceptions/AuthenticationError';
 import BadRequestError from '../exceptions/BadRequestError';
+import HTTPError from '../exceptions/HTTPError';
+import NotFoundError from '../exceptions/NotFoundError';
 import NewUserForm from '../datatypes/user/NewUserForm';
 import ChangeUserForm from '../datatypes/user/ChangeUserForm';
 import User from '../datatypes/user/User';
@@ -115,7 +117,10 @@ userRouter.post('/', async (req, res, next) => {
         newUserForm.phoneNumber.countryCode,
         newUserForm.phoneNumber.phoneNumber
       );
-      userPhoneNumberDBOps = UserPhoneNumber.create(dbClient, userPhoneNumber);
+      userPhoneNumberDBOps = UserPhoneNumber.createUpdate(
+        dbClient,
+        userPhoneNumber
+      );
     }
 
     // UserEmail & Verify Ticket
@@ -183,6 +188,18 @@ userRouter.put('/:username', async (req, res, next) => {
       throw new BadRequestError();
     }
 
+    // Check whether user has been suspended or not
+    const targetUser = await User.read(dbClient, username);
+    if (targetUser.status === 'suspended') {
+      throw new HTTPError(400, 'Suspended User');
+    } else if (targetUser.status === 'deleted') {
+      throw new NotFoundError();
+    }
+    const updateUser = await User.read(dbClient, tokenContent.username);
+    if (updateUser.status === 'suspended' || updateUser.status === 'deleted') {
+      throw new AuthenticationError();
+    }
+
     // DB Ops
     const dbOps = [];
     // nickname update
@@ -209,11 +226,7 @@ userRouter.put('/:username', async (req, res, next) => {
         changeRequest.phoneNumber.countryCode,
         changeRequest.phoneNumber.phoneNumber
       );
-      if ((await UserPhoneNumber.read(dbClient, username)) !== null) {
-        dbOps.push(UserPhoneNumber.update(dbClient, userPhoneNumber));
-      } else {
-        dbOps.push(UserPhoneNumber.create(dbClient, userPhoneNumber));
-      }
+      dbOps.push(UserPhoneNumber.createUpdate(dbClient, userPhoneNumber));
     }
     // email Change requests
     let emailOps;

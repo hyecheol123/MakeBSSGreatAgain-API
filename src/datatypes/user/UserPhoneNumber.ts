@@ -5,7 +5,6 @@
  */
 
 import * as mariadb from 'mariadb';
-import NotFoundError from '../../exceptions/NotFoundError';
 
 /**
  * Class for UserPhoneNumber
@@ -30,20 +29,28 @@ export default class UserPhoneNumber {
 
   /**
    * Create new entry in phone_number table
+   * - When duplicated username found,update the content
    *
    * @param dbClient DB Connection Pool (MariaDB)
    * @param phoneNumber UserPhoneNumber Information
    */
-  static async create(
+  static async createUpdate(
     dbClient: mariadb.Pool,
     phoneNumber: UserPhoneNumber
   ): Promise<void> {
     await dbClient.query(
       String.prototype.concat(
         'INSERT INTO user_phone_number ',
-        '(username, country_code, phone_number) VALUES (?, ?, ?)'
+        '(username, country_code, phone_number) VALUES (?, ?, ?) ',
+        'ON DUPLICATE KEY UPDATE country_code = ?, phone_number = ?'
       ),
-      [phoneNumber.username, phoneNumber.countryCode, phoneNumber.phoneNumber]
+      [
+        phoneNumber.username,
+        phoneNumber.countryCode,
+        phoneNumber.phoneNumber,
+        phoneNumber.countryCode,
+        phoneNumber.phoneNumber,
+      ]
     );
   }
 
@@ -69,32 +76,6 @@ export default class UserPhoneNumber {
       };
     } else {
       return null;
-    }
-  }
-
-  /**
-   * Update User's PhoneNumber
-   *
-   * @param dbClient DB Connection Pool
-   * @param phoneNumber UserPhoneNumber Information
-   */
-  static async update(
-    dbClient: mariadb.Pool,
-    phoneNumber: UserPhoneNumber
-  ): Promise<void> {
-    const queryResult = await dbClient.query(
-      String.prototype.concat(
-        'UPDATE user_phone_number as UPN ',
-        'INNER JOIN user as U ',
-        'ON UPN.username = ? ',
-        'AND (U.status = "verified" OR U.status = "unverified") ',
-        'SET UPN.country_code = ?, UPN.phone_number = ?;'
-      ),
-      [phoneNumber.username, phoneNumber.countryCode, phoneNumber.phoneNumber]
-    );
-
-    if (queryResult.affectedRows !== 1) {
-      throw new NotFoundError();
     }
   }
 }
