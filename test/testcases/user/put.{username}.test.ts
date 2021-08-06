@@ -7,6 +7,8 @@
 // eslint-disable-next-line node/no-unpublished-import
 import * as request from 'supertest';
 import TestEnv from '../../TestEnv';
+// eslint-disable-next-line node/no-unpublished-import
+import MockDate from 'mockdate';
 
 describe('PUT /user/{username} - Update user information', () => {
   let testEnv: TestEnv;
@@ -18,6 +20,7 @@ describe('PUT /user/{username} - Update user information', () => {
   beforeEach(async () => {
     // Setup TestEnv
     testEnv = new TestEnv(expect.getState().currentTestName);
+    MockDate.set(new Date());
 
     // Start Test Environment
     const resourceList = ['USER'];
@@ -26,6 +29,7 @@ describe('PUT /user/{username} - Update user information', () => {
 
   afterEach(async () => {
     await testEnv.stop();
+    MockDate.reset();
   });
 
   test('Success - Owner (without phoneNumber record)', async () => {
@@ -785,7 +789,7 @@ describe('PUT /user/{username} - Update user information', () => {
       .split('=')[1];
 
     // User suspended
-    let queryResult = await testEnv.dbClient.query(
+    await testEnv.dbClient.query(
       "UPDATE user SET status = 'suspended' WHERE username='admin1'"
     );
 
@@ -806,7 +810,7 @@ describe('PUT /user/{username} - Update user information', () => {
     );
 
     // nickname
-    queryResult = await testEnv.dbClient.query(
+    let queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user WHERE username='testuser1'"
     );
     expect(queryResult.length).toBe(1);
@@ -842,7 +846,7 @@ describe('PUT /user/{username} - Update user information', () => {
       .split('=')[1];
 
     // User deleted
-    let queryResult = await testEnv.dbClient.query(
+    await testEnv.dbClient.query(
       "UPDATE user SET status = 'deleted' WHERE username='admin1'"
     );
 
@@ -863,7 +867,7 @@ describe('PUT /user/{username} - Update user information', () => {
     );
 
     // nickname
-    queryResult = await testEnv.dbClient.query(
+    let queryResult = await testEnv.dbClient.query(
       "SELECT * FROM user WHERE username='testuser1'"
     );
     expect(queryResult.length).toBe(1);

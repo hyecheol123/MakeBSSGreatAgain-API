@@ -51,7 +51,6 @@ async function addNewEmail(
   );
 
   // TODO: Send Email Verify Notice (AWS Lambda + SES)
-  console.log(userEmail.email);
 
   return Promise.resolve(userEmailVerifyTicketDBOps);
 }
