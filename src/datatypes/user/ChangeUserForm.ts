@@ -1,5 +1,5 @@
 /**
- * Defien type for change user request from
+ * Define type for change user request from
  *
  * @author Hyecheol (Jerry) Jang <hyecheol123@gmail.com>
  */
